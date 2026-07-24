@@ -58,6 +58,11 @@ export function TopBar({ viewer, teachers, students }: Props) {
         <Link href="/agenda" className="lms-topbar__link" data-active={pathname === '/agenda'}>
           Agenda
         </Link>
+        {viewer.kind === 'teacher' && (
+          <Link href="/standards" className="lms-topbar__link" data-active={pathname === '/standards'}>
+            Standards
+          </Link>
+        )}
       </nav>
       <div className="lms-topbar__spacer" />
 

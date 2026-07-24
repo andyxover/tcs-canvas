@@ -72,7 +72,7 @@ export interface Assignment {
   published: boolean
   submissionType: SubmissionType
   rubricId: string | null
-  /** BC learning standards this coursework assesses (ids into BC_STANDARDS). */
+  /** BC learning standards this coursework assesses (ids into the BC catalogue). */
   standardIds: string[]
   /** Display ordering within the Assignments list. */
   position: number

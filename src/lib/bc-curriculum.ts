@@ -13,6 +13,8 @@
 // Before real use, verify against the official source at curriculum.gov.bc.ca —
 // the full catalogue spans every grade and area of learning.
 
+import { BC_STANDARDS_1012 } from './bc-curriculum-1012'
+
 export type StandardKind = 'big-idea' | 'curricular-competency' | 'content' | 'core-competency'
 
 export interface BcStandard {
@@ -153,7 +155,70 @@ const MATH_9: BcStandard[] = [
   { id: 'ma9-co-8', subject: 'Mathematics', grade: '9', kind: 'content', code: 'MA9-CO-8', text: 'Financial literacy — simple budgets and transactions.' },
 ]
 
-export const BC_STANDARDS: BcStandard[] = [...SCIENCE_9, ...MATH_9, ...CORE]
+/** Standards shipped with the app (Grade 9 + the Graduation Program). */
+export const BUILT_IN_STANDARDS: BcStandard[] = [...SCIENCE_9, ...MATH_9, ...BC_STANDARDS_1012, ...CORE]
+
+// The live catalogue is mutable so schools can import the official BC data on
+// top of what ships. It lives on globalThis for the same reason the data store
+// does: survive dev hot-reloads, reset on a full restart.
+const registry = globalThis as unknown as { __bcStandards?: BcStandard[] }
+
+function catalogue(): BcStandard[] {
+  if (!registry.__bcStandards) registry.__bcStandards = [...BUILT_IN_STANDARDS]
+  return registry.__bcStandards
+}
+
+/** Every standard currently in the catalogue (built-in + imported). */
+export function listStandards(): BcStandard[] {
+  return catalogue()
+}
+
+/** True when a standard came from an import rather than shipping with the app. */
+export function isImported(id: string): boolean {
+  return !BUILT_IN_STANDARDS.some((s) => s.id === id)
+}
+
+/**
+ * Merge standards into the catalogue. Matching ids are replaced (re-importing a
+ * corrected file updates in place rather than duplicating), new ones appended.
+ * Returns what changed.
+ */
+export function addStandards(incoming: BcStandard[]): { added: number; updated: number } {
+  const cat = catalogue()
+  let added = 0
+  let updated = 0
+  for (const std of incoming) {
+    const i = cat.findIndex((s) => s.id === std.id)
+    if (i >= 0) {
+      cat[i] = std
+      updated += 1
+    } else {
+      cat.push(std)
+      added += 1
+    }
+  }
+  return { added, updated }
+}
+
+/** Remove every imported standard, restoring the shipped catalogue. */
+export function resetStandards(): void {
+  registry.__bcStandards = [...BUILT_IN_STANDARDS]
+}
+
+/** Distinct subject + grade pairs in the catalogue, for course settings. */
+export function listCurricula(): { subject: string; grade: string; count: number }[] {
+  const map = new Map<string, { subject: string; grade: string; count: number }>()
+  for (const s of catalogue()) {
+    if (s.kind === 'core-competency') continue
+    const key = `${s.subject}||${s.grade}`
+    const cur = map.get(key)
+    if (cur) cur.count += 1
+    else map.set(key, { subject: s.subject, grade: s.grade, count: 1 })
+  }
+  return [...map.values()].sort(
+    (a, b) => a.grade.localeCompare(b.grade, undefined, { numeric: true }) || a.subject.localeCompare(b.subject),
+  )
+}
 
 export const KIND_META: Record<StandardKind, { label: string; plural: string; icon: string }> = {
   'big-idea': { label: 'Big Idea', plural: 'Big Ideas', icon: '◆' },
@@ -163,13 +228,12 @@ export const KIND_META: Record<StandardKind, { label: string; plural: string; ic
 }
 
 export function getStandard(id: string): BcStandard | undefined {
-  return BC_STANDARDS.find((s) => s.id === id)
+  return catalogue().find((s) => s.id === id)
 }
 
 /** Standards available to a course: its own subject+grade, plus Core Competencies. */
 export function standardsFor(subject: string | undefined, grade: string | undefined): BcStandard[] {
-  if (!subject || !grade) return BC_STANDARDS.filter((s) => s.kind === 'core-competency')
-  return BC_STANDARDS.filter(
-    (s) => (s.subject === subject && s.grade === grade) || s.kind === 'core-competency',
-  )
+  const cat = catalogue()
+  if (!subject || !grade) return cat.filter((s) => s.kind === 'core-competency')
+  return cat.filter((s) => (s.subject === subject && s.grade === grade) || s.kind === 'core-competency')
 }

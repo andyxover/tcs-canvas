@@ -95,6 +95,27 @@ const courses: Course[] = [
       ],
     },
   },
+  {
+    id: 'c-chem11',
+    code: 'CHEM 11',
+    name: 'Chemistry 11',
+    term: 'Fall 2026',
+    teacherId: 't-rivera',
+    color: '#b45309',
+    syllabus:
+      '<h2>Chemistry 11</h2><p>Atoms, moles, and reactions. A Graduation Program course — reported with letter grades and percentages, with the proficiency scale used formatively.</p>',
+    published: true,
+    curriculum: { subject: 'Chemistry', grade: '11' },
+    gradeSettings: {
+      calc: 'weighted',
+      showTotalsToStudents: true,
+      categories: [
+        { name: 'Labs', weight: 30 },
+        { name: 'Quizzes', weight: 20 },
+        { name: 'Tests', weight: 50 },
+      ],
+    },
+  },
 ]
 
 const enrollments: Enrollment[] = students.flatMap((s) =>
@@ -159,6 +180,13 @@ const math9Assignments: AssignmentSeed[] = [
   { id: 'a-math-exam1', title: 'Midterm Exam', category: 'Exams', points: 100, dueOffset: 7, standardIds: ['ma9-bi-2', 'ma9-bi-3', 'ma9-co-1', 'ma9-co-5', 'ma9-cc-6'], instructions: '<p>Covers integers through linear equations.</p>' },
 ]
 
+const chem11Assignments: AssignmentSeed[] = [
+  { id: 'a-chem-lab1', title: 'Lab: Flame Tests', category: 'Labs', points: 25, dueOffset: -10, standardIds: ['ch11-cc3', 'ch11-cc4', 'ch11-co2'], instructions: '<p>Identify metal ions by their characteristic flame colours.</p>' },
+  { id: 'a-chem-quiz1', title: 'Quiz: Periodic Trends', category: 'Quizzes', points: 20, dueOffset: -5, standardIds: ['ch11-bi1', 'ch11-co3'], instructions: '<p>Quiz on atomic radius, ionization energy, and electronegativity.</p>' },
+  { id: 'a-chem-lab2', title: 'Lab: Stoichiometry of a Precipitate', category: 'Labs', points: 25, dueOffset: 5, standardIds: ['ch11-bi4', 'ch11-co7', 'ch11-co8', 'core-think-2'], instructions: '<p>Determine percent yield from a precipitation reaction.</p>' },
+  { id: 'a-chem-test1', title: 'Unit Test: The Mole', category: 'Tests', points: 60, dueOffset: 11, standardIds: ['ch11-bi4', 'ch11-co7', 'ch11-co8', 'ch11-cc7'], instructions: '<p>Covers the mole concept through stoichiometry.</p>' },
+]
+
 // A live, takeable quiz — future due date so students can sit it in the demo.
 interface QuizSeed {
   id: string
@@ -205,6 +233,7 @@ function buildAssignments(): Assignment[] {
     }))
   const sci9 = make('c-sci9', sci9Assignments)
   const math9 = make('c-math9', math9Assignments)
+  const chem11 = make('c-chem11', chem11Assignments)
   const sci9Q: Assignment[] = sci9Quizzes.map((q, i) => ({
     id: q.id,
     courseId: 'c-sci9',
@@ -219,7 +248,7 @@ function buildAssignments(): Assignment[] {
     standardIds: q.standardIds ?? [],
     position: sci9.length + i,
   }))
-  return [...sci9, ...sci9Q, ...math9]
+  return [...sci9, ...sci9Q, ...math9, ...chem11]
 }
 
 function buildQuizzes(): Quiz[] {

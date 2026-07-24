@@ -7,7 +7,7 @@
 
 import { buildSeed } from './seed'
 import { computeCourseGrade, type CourseGrade, type ScoredItem } from './grade-calc'
-import { BC_STANDARDS, type ProficiencyLevel } from './bc-curriculum'
+import { listStandards, type ProficiencyLevel } from './bc-curriculum'
 import type {
   Announcement,
   Assignment,
@@ -455,7 +455,7 @@ export function courseStandardIds(courseId: string): string[] {
     if (!a.published) continue
     for (const id of a.standardIds ?? []) seen.add(id)
   }
-  return BC_STANDARDS.filter((s) => seen.has(s.id)).map((s) => s.id)
+  return listStandards().filter((s) => seen.has(s.id)).map((s) => s.id)
 }
 
 export interface StandardMastery {
