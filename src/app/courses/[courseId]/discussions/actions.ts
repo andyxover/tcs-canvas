@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { addDiscussionPost, createDiscussionTopic } from '@/lib/store'
+import { addDiscussionPost, createDiscussionTopic, deleteDiscussionTopic } from '@/lib/store'
 
 function str(fd: FormData, key: string): string {
   const v = fd.get(key)
@@ -16,6 +16,12 @@ export async function createTopicAction(courseId: string, authorId: string, fd: 
   const topic = createDiscussionTopic({ courseId, authorId, title, body })
   revalidatePath(`/courses/${courseId}/discussions`, 'page')
   redirect(`/courses/${courseId}/discussions/${topic.id}`)
+}
+
+export async function deleteTopicAction(courseId: string, topicId: string): Promise<void> {
+  deleteDiscussionTopic(topicId)
+  revalidatePath(`/courses/${courseId}/discussions`, 'page')
+  redirect(`/courses/${courseId}/discussions`)
 }
 
 export async function addPostAction(courseId: string, topicId: string, authorId: string, fd: FormData): Promise<void> {

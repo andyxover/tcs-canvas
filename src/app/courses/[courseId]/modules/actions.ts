@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { addModuleItem, createModule, getAssignment } from '@/lib/store'
+import { addModuleItem, createModule, deleteModule, deleteModuleItem, getAssignment } from '@/lib/store'
 import type { ModuleItemKind } from '@/lib/types'
 
 function str(fd: FormData, key: string): string {
@@ -12,6 +12,16 @@ function str(fd: FormData, key: string): string {
 export async function createModuleAction(courseId: string, fd: FormData): Promise<void> {
   const name = str(fd, 'name')
   if (name) createModule(courseId, name)
+  revalidatePath(`/courses/${courseId}/modules`, 'page')
+}
+
+export async function deleteModuleAction(courseId: string, moduleId: string): Promise<void> {
+  deleteModule(moduleId)
+  revalidatePath(`/courses/${courseId}/modules`, 'page')
+}
+
+export async function deleteModuleItemAction(courseId: string, moduleId: string, itemId: string): Promise<void> {
+  deleteModuleItem(moduleId, itemId)
   revalidatePath(`/courses/${courseId}/modules`, 'page')
 }
 

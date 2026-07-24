@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation'
 import { getViewer } from '@/lib/session'
 import { getCourse, getDiscussionTopic, getPerson, listDiscussionPosts } from '@/lib/store'
 import type { DiscussionPost } from '@/lib/types'
-import { Avatar, RichText, fmtRelative } from '../../../../_components/ui'
-import { addPostAction } from '../actions'
+import { Avatar, InlineDelete, RichText, fmtRelative } from '../../../../_components/ui'
+import { addPostAction, deleteTopicAction } from '../actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,8 +24,13 @@ export default async function TopicPage({
 
   return (
     <div className="lms-stack" style={{ maxWidth: 740 }}>
-      <div className="lms-breadcrumb">
-        <Link href={`/courses/${courseId}/discussions`}>Discussions</Link> / {topic.title}
+      <div className="lms-between">
+        <div className="lms-breadcrumb" style={{ margin: 0 }}>
+          <Link href={`/courses/${courseId}/discussions`}>Discussions</Link> / {topic.title}
+        </div>
+        {viewer.kind === 'teacher' && (
+          <InlineDelete action={deleteTopicAction.bind(null, courseId, topicId)} confirm="Delete this discussion and all replies?" />
+        )}
       </div>
 
       <div className="lms-card lms-card--pad">

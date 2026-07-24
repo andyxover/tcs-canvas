@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { listAssignments, listModules } from '@/lib/store'
 import type { CourseModule, ModuleItem } from '@/lib/types'
 import { courseCtx } from '../_shared'
-import { Badge, EmptyState, formatBytes } from '../../../_components/ui'
-import { addModuleItemAction, createModuleAction } from './actions'
+import { Badge, EmptyState, InlineDelete, formatBytes } from '../../../_components/ui'
+import { addModuleItemAction, createModuleAction, deleteModuleAction, deleteModuleItemAction } from './actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,8 +62,13 @@ function ModuleCard({
   return (
     <div className="lms-card">
       <div className="lms-between" style={{ padding: '14px 18px', borderBottom: '1px solid var(--lms-line)' }}>
-        <div style={{ fontWeight: 700 }}>{mod.name}</div>
-        {!mod.published && <Badge tone="muted">Unpublished</Badge>}
+        <div className="lms-flex lms-gap-sm">
+          <span style={{ fontWeight: 700 }}>{mod.name}</span>
+          {!mod.published && <Badge tone="muted">Unpublished</Badge>}
+        </div>
+        {isTeacher && (
+          <InlineDelete action={deleteModuleAction.bind(null, courseId, mod.id)} confirm="Delete this module and its items?" />
+        )}
       </div>
 
       {mod.items.length === 0 ? (
@@ -72,7 +77,18 @@ function ModuleCard({
         [...mod.items]
           .sort((a, b) => a.position - b.position)
           .map((item) => (
-            <ModuleItemRow key={item.id} item={item} courseId={courseId} />
+            <div key={item.id} className="lms-row" style={{ padding: 0 }}>
+              <ModuleItemRow item={item} courseId={courseId} />
+              {isTeacher && (
+                <div style={{ paddingRight: 12 }}>
+                  <InlineDelete
+                    action={deleteModuleItemAction.bind(null, courseId, mod.id, item.id)}
+                    confirm="Remove this item?"
+                    summary="✕"
+                  />
+                </div>
+              )}
+            </div>
           ))
       )}
 
@@ -144,24 +160,24 @@ function ModuleItemRow({ item, courseId }: { item: ModuleItem; courseId: string 
 
   if (item.kind === 'assignment' && item.refId) {
     return (
-      <Link href={`/courses/${courseId}/assignments/${item.refId}`} className="lms-row">
+      <Link href={`/courses/${courseId}/assignments/${item.refId}`} className="lms-modlink">
         {inner}
       </Link>
     )
   }
   if (item.kind === 'page' && item.refId) {
     return (
-      <Link href={`/courses/${courseId}/pages/${item.refId}`} className="lms-row">
+      <Link href={`/courses/${courseId}/pages/${item.refId}`} className="lms-modlink">
         {inner}
       </Link>
     )
   }
   if (item.kind === 'link' && item.url) {
     return (
-      <a href={item.url} target="_blank" rel="noopener noreferrer" className="lms-row">
+      <a href={item.url} target="_blank" rel="noopener noreferrer" className="lms-modlink">
         {inner}
       </a>
     )
   }
-  return <div className="lms-row">{inner}</div>
+  return <div className="lms-modlink">{inner}</div>
 }

@@ -1,7 +1,7 @@
 import { getPerson, listAnnouncements } from '@/lib/store'
 import { courseCtx } from '../_shared'
-import { Avatar, EmptyState, RichText, fmtRelative } from '../../../_components/ui'
-import { createAnnouncementAction } from './actions'
+import { Avatar, EmptyState, InlineDelete, RichText, fmtRelative } from '../../../_components/ui'
+import { createAnnouncementAction, deleteAnnouncementAction } from './actions'
 import { RichTextEditor } from '../../../_components/RichTextEditor'
 
 export const dynamic = 'force-dynamic'
@@ -35,14 +35,19 @@ export default async function AnnouncementsPage({ params }: { params: Promise<{ 
             const author = getPerson(a.authorId)
             return (
               <div key={a.id} className="lms-card lms-card--pad">
-                <div className="lms-flex" style={{ marginBottom: 8 }}>
-                  {author && <Avatar person={author} size={30} />}
-                  <div>
-                    <div style={{ fontWeight: 700 }}>{a.title}</div>
-                    <div className="lms-row__meta">
-                      {author?.name} · {fmtRelative(a.postedAt)}
+                <div className="lms-between" style={{ marginBottom: 8, alignItems: 'flex-start' }}>
+                  <div className="lms-flex">
+                    {author && <Avatar person={author} size={30} />}
+                    <div>
+                      <div style={{ fontWeight: 700 }}>{a.title}</div>
+                      <div className="lms-row__meta">
+                        {author?.name} · {fmtRelative(a.postedAt)}
+                      </div>
                     </div>
                   </div>
+                  {isTeacher && (
+                    <InlineDelete action={deleteAnnouncementAction.bind(null, course.id, a.id)} confirm="Delete this announcement?" />
+                  )}
                 </div>
                 <RichText html={a.body} />
               </div>

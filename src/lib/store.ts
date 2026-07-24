@@ -386,6 +386,15 @@ export function addModuleItem(moduleId: string, item: Omit<ModuleItem, 'id' | 'p
   mod.items.push({ ...item, id: newId('mi'), position: mod.items.length })
 }
 
+export function deleteModule(moduleId: string): void {
+  data().modules = data().modules.filter((m) => m.id !== moduleId)
+}
+
+export function deleteModuleItem(moduleId: string, itemId: string): void {
+  const mod = data().modules.find((m) => m.id === moduleId)
+  if (mod) mod.items = mod.items.filter((it) => it.id !== itemId)
+}
+
 // ---------------------------------------------------------------------------
 // Rubrics
 // ---------------------------------------------------------------------------
@@ -419,6 +428,10 @@ export function createAnnouncement(input: { courseId: string; authorId: string; 
   })
 }
 
+export function deleteAnnouncement(id: string): void {
+  data().announcements = data().announcements.filter((a) => a.id !== id)
+}
+
 export function listDiscussionTopics(courseId: string): DiscussionTopic[] {
   return data()
     .discussionTopics.filter((t) => t.courseId === courseId)
@@ -446,6 +459,11 @@ export function createDiscussionTopic(input: { courseId: string; authorId: strin
   }
   data().discussionTopics.push(topic)
   return topic
+}
+
+export function deleteDiscussionTopic(id: string): void {
+  data().discussionTopics = data().discussionTopics.filter((t) => t.id !== id)
+  data().discussionPosts = data().discussionPosts.filter((p) => p.topicId !== id)
 }
 
 export function addDiscussionPost(input: { topicId: string; authorId: string; body: string; parentId: string | null }): void {

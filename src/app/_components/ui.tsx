@@ -37,6 +37,31 @@ export function RichText({ html }: { html: string }) {
   return <div className="lms-prose" dangerouslySetInnerHTML={{ __html: html }} />
 }
 
+/** A "Delete" button that reveals an inline confirm before firing the action. */
+export function InlineDelete({
+  action,
+  confirm,
+  summary = 'Delete',
+}: {
+  action: () => Promise<void>
+  confirm: string
+  summary?: string
+}) {
+  return (
+    <details className="lms-inline-delete">
+      <summary className="lms-btn lms-btn--sm lms-btn--danger-ghost">{summary}</summary>
+      <form action={action} className="lms-delete-confirm">
+        <span className="lms-muted" style={{ fontSize: 12.5 }}>
+          {confirm}
+        </span>
+        <button type="submit" className="lms-btn lms-btn--sm lms-btn--danger">
+          Yes, delete
+        </button>
+      </form>
+    </details>
+  )
+}
+
 export function EmptyState({ icon, title, hint }: { icon: string; title: string; hint?: string }) {
   return (
     <div className="lms-empty">

@@ -16,6 +16,17 @@ body { background: #f4f5f7; }
 }
 .lms .lms-btn--danger-ghost::-webkit-details-marker { display: none; }
 .lms .lms-btn--danger-ghost:hover { background: var(--lms-danger-bg); }
+.lms .lms-modlink {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+  padding: 14px 18px;
+  color: inherit;
+  transition: background 100ms ease;
+}
+.lms .lms-modlink:hover { background: var(--lms-bg); }
 .lms .lms-inline-delete { position: relative; }
 .lms .lms-delete-confirm {
   position: absolute;
