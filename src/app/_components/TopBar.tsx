@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { setIdentity } from '../actions'
 import type { IdentityKind, Person } from '@/lib/types'
 
@@ -15,6 +15,7 @@ type Props = {
 export function TopBar({ viewer, teachers, students }: Props) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -42,6 +43,14 @@ export function TopBar({ viewer, teachers, students }: Props) {
         <span>TCS Learn</span>
       </Link>
       <span className="lms-topbar__lab">Sandbox</span>
+      <nav className="lms-topbar__nav">
+        <Link href="/" className="lms-topbar__link" data-active={pathname === '/'}>
+          Courses
+        </Link>
+        <Link href="/agenda" className="lms-topbar__link" data-active={pathname === '/agenda'}>
+          Agenda
+        </Link>
+      </nav>
       <div className="lms-topbar__spacer" />
 
       <div className="lms-switch" ref={ref}>

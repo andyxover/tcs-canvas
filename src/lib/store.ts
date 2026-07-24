@@ -109,6 +109,46 @@ export function listUpcomingAssignments(courseId: string, limit: number): Assign
     .slice(0, limit)
 }
 
+export interface AgendaEntry {
+  assignmentId: string
+  title: string
+  courseId: string
+  courseName: string
+  courseColor: string
+  dueAt: string
+  points: number
+  isQuiz: boolean
+}
+
+/** Published, dated assignments across the given courses that are due from the
+ *  start of today onward, within `daysAhead`. Sorted soonest-first. The clock
+ *  lives here so callers (server components) stay pure during render. */
+export function agendaForCourses(courseIds: string[], daysAhead = 21): AgendaEntry[] {
+  const ids = new Set(courseIds)
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  const until = startOfToday + daysAhead * 24 * 60 * 60 * 1000
+  const out: AgendaEntry[] = []
+  for (const a of data().assignments) {
+    if (!ids.has(a.courseId) || !a.published || a.dueAt == null) continue
+    const t = new Date(a.dueAt).getTime()
+    if (t < startOfToday || t > until) continue
+    const course = getCourse(a.courseId)
+    if (!course) continue
+    out.push({
+      assignmentId: a.id,
+      title: a.title,
+      courseId: a.courseId,
+      courseName: course.name,
+      courseColor: course.color,
+      dueAt: a.dueAt,
+      points: a.points,
+      isQuiz: a.submissionType === 'quiz',
+    })
+  }
+  return out.sort((a, b) => a.dueAt.localeCompare(b.dueAt))
+}
+
 export interface AssignmentInput {
   courseId: string
   title: string
