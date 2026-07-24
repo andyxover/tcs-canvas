@@ -14,6 +14,8 @@ import type {
   LmsData,
   Page,
   Person,
+  Quiz,
+  QuizQuestion,
   Rubric,
   Submission,
 } from './types'
@@ -153,6 +155,32 @@ const math9Assignments: AssignmentSeed[] = [
   { id: 'a-math-exam1', title: 'Midterm Exam', category: 'Exams', points: 100, dueOffset: 7, instructions: '<p>Covers integers through linear equations.</p>' },
 ]
 
+// A live, takeable quiz — future due date so students can sit it in the demo.
+interface QuizSeed {
+  id: string
+  title: string
+  category: string
+  points: number
+  dueOffset: number
+  questions: QuizQuestion[]
+}
+
+const sci9Quizzes: QuizSeed[] = [
+  {
+    id: 'a-sci-quiz2',
+    title: 'Quiz: Lab Safety',
+    category: 'Quizzes',
+    points: 12,
+    dueOffset: 4,
+    questions: [
+      { id: 'q1', prompt: 'Before starting any lab, the first thing you should do is…', kind: 'mc', options: ['Put on safety goggles', 'Taste the chemicals', 'Open every window', 'Turn off the lights'], correctIndex: 0 },
+      { id: 'q2', prompt: 'Long hair must be tied back during a lab.', kind: 'tf', options: ['True', 'False'], correctIndex: 0 },
+      { id: 'q3', prompt: 'If you spill a chemical, you should…', kind: 'mc', options: ['Ignore it', 'Tell the teacher immediately', 'Wipe it with your sleeve', 'Leave the room quietly'], correctIndex: 1 },
+      { id: 'q4', prompt: 'It is safe to eat or drink at your lab station.', kind: 'tf', options: ['True', 'False'], correctIndex: 1 },
+    ],
+  },
+]
+
 function buildAssignments(): Assignment[] {
   const make = (courseId: string, seeds: AssignmentSeed[]): Assignment[] =>
     seeds.map((s, i) => ({
@@ -164,11 +192,30 @@ function buildAssignments(): Assignment[] {
       category: s.category,
       dueAt: daysFromNow(s.dueOffset),
       published: true,
-      submissionType: 'online',
+      submissionType: 'online' as const,
       rubricId: s.rubricId ?? null,
       position: i,
     }))
-  return [...make('c-sci9', sci9Assignments), ...make('c-math9', math9Assignments)]
+  const sci9 = make('c-sci9', sci9Assignments)
+  const math9 = make('c-math9', math9Assignments)
+  const sci9Q: Assignment[] = sci9Quizzes.map((q, i) => ({
+    id: q.id,
+    courseId: 'c-sci9',
+    title: q.title,
+    instructions: '<p>Answer every question. This quiz is graded automatically the moment you submit.</p>',
+    points: q.points,
+    category: q.category,
+    dueAt: daysFromNow(q.dueOffset),
+    published: true,
+    submissionType: 'quiz' as const,
+    rubricId: null,
+    position: sci9.length + i,
+  }))
+  return [...sci9, ...sci9Q, ...math9]
+}
+
+function buildQuizzes(): Quiz[] {
+  return sci9Quizzes.map((q) => ({ assignmentId: q.id, questions: q.questions }))
 }
 
 function buildSubmissions(assignments: Assignment[]): Submission[] {
@@ -219,8 +266,9 @@ function base(
     text: state === 'unsubmitted' ? '' : 'Submitted through the sandbox.',
     attachments: state === 'unsubmitted' ? [] : [{ name: 'work.pdf', size: 184320 }],
     score,
-    feedback: score != null && score < 0 ? '' : '',
+    feedback: '',
     rubricScores: [],
+    answers: [],
   }
 }
 
@@ -321,6 +369,7 @@ export function buildSeed(): LmsData {
     pages,
     assignments,
     submissions,
+    quizzes: buildQuizzes(),
     rubrics,
     announcements,
     discussionTopics,

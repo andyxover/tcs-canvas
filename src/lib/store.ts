@@ -19,7 +19,9 @@ import type {
   ModuleItem,
   Page,
   Person,
+  Quiz,
   Rubric,
+  RubricScore,
   Submission,
 } from './types'
 
@@ -163,6 +165,7 @@ function emptySubmission(assignmentId: string, studentId: string): Submission {
     score: null,
     feedback: '',
     rubricScores: [],
+    answers: [],
   }
 }
 
@@ -199,6 +202,49 @@ export function gradeSubmission(
   sub.score = input.score
   sub.feedback = input.feedback
   sub.state = input.score != null ? 'graded' : sub.submittedAt ? 'submitted' : 'unsubmitted'
+}
+
+/** Grade from a rubric: the score is the sum of the selected level points. */
+export function gradeSubmissionWithRubric(
+  assignmentId: string,
+  studentId: string,
+  input: { rubricScores: RubricScore[]; feedback: string },
+): void {
+  const sub = getSubmission(assignmentId, studentId)
+  sub.rubricScores = input.rubricScores
+  sub.score = input.rubricScores.reduce((n, r) => n + r.points, 0)
+  sub.feedback = input.feedback
+  sub.state = 'graded'
+}
+
+// ---------------------------------------------------------------------------
+// Quizzes (auto-graded)
+// ---------------------------------------------------------------------------
+
+export function getQuiz(assignmentId: string): Quiz | undefined {
+  return data().quizzes.find((q) => q.assignmentId === assignmentId)
+}
+
+/** Auto-grade a quiz on submit: score = (correct / total) × assignment points.
+ *  Returns the earned score and the max, or null if there's no quiz. */
+export function submitQuiz(
+  assignmentId: string,
+  studentId: string,
+  answers: number[],
+): { correct: number; total: number; score: number; points: number } | null {
+  const quiz = getQuiz(assignmentId)
+  const assignment = getAssignment(assignmentId)
+  if (!quiz || !assignment) return null
+  const total = quiz.questions.length
+  const correct = quiz.questions.reduce((n, q, i) => n + (answers[i] === q.correctIndex ? 1 : 0), 0)
+  const score = total > 0 ? Math.round((correct / total) * assignment.points) : 0
+  const sub = getSubmission(assignmentId, studentId)
+  sub.answers = answers
+  sub.score = score
+  sub.state = 'graded'
+  sub.submittedAt = new Date().toISOString()
+  sub.feedback = `Auto-graded: ${correct} of ${total} correct.`
+  return { correct, total, score, points: assignment.points }
 }
 
 // ---------------------------------------------------------------------------

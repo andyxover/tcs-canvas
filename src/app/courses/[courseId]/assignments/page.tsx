@@ -38,11 +38,16 @@ export default async function AssignmentsPage({ params }: { params: Promise<{ co
           {assignments.map((a) => (
             <Link key={a.id} href={`/courses/${course.id}/assignments/${a.id}`} className="lms-row">
               <div className="lms-row__icon" aria-hidden>
-                ✎
+                {a.submissionType === 'quiz' ? '◎' : '✎'}
               </div>
               <div className="lms-row__main">
                 <div className="lms-row__title">
                   {a.title}
+                  {a.submissionType === 'quiz' && (
+                    <span style={{ marginLeft: 8 }}>
+                      <Badge tone="info">Quiz</Badge>
+                    </span>
+                  )}
                   {!a.published && (
                     <span style={{ marginLeft: 8 }}>
                       <Badge tone="muted">Draft</Badge>

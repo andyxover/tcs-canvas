@@ -7,7 +7,17 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createAssignment, gradeSubmission, getAssignment, turnInSubmission } from '@/lib/store'
+import {
+  createAssignment,
+  gradeSubmission,
+  gradeSubmissionWithRubric,
+  getAssignment,
+  getQuiz,
+  getRubric,
+  submitQuiz,
+  turnInSubmission,
+} from '@/lib/store'
+import type { RubricScore } from '@/lib/types'
 
 function str(fd: FormData, key: string): string {
   const v = fd.get(key)
@@ -49,13 +59,48 @@ export async function turnInAction(courseId: string, assignmentId: string, stude
 
 export async function gradeAction(courseId: string, assignmentId: string, studentId: string, fd: FormData): Promise<void> {
   const assignment = getAssignment(assignmentId)
+  const feedback = str(fd, 'feedback')
+  const rubric = assignment?.rubricId ? getRubric(assignment.rubricId) : undefined
+
+  // Rubric path: score is the sum of the selected level points per criterion.
+  if (rubric) {
+    const rubricScores: RubricScore[] = []
+    for (const c of rubric.criteria) {
+      const raw = str(fd, `crit-${c.id}`)
+      if (raw !== '') {
+        const pts = Number(raw)
+        if (!Number.isNaN(pts)) rubricScores.push({ criterionId: c.id, points: pts })
+      }
+    }
+    if (rubricScores.length > 0) {
+      gradeSubmissionWithRubric(assignmentId, studentId, { rubricScores, feedback })
+      revalidatePath(`/courses/${courseId}/assignments/${assignmentId}/submissions`, 'page')
+      revalidatePath(`/courses/${courseId}/assignments/${assignmentId}`, 'page')
+      return
+    }
+  }
+
+  // Plain points path.
   const raw = str(fd, 'score')
   let score: number | null = null
   if (raw !== '') {
     const n = Number(raw)
     if (!Number.isNaN(n)) score = Math.max(0, Math.min(assignment?.points ?? n, n))
   }
-  gradeSubmission(assignmentId, studentId, { score, feedback: str(fd, 'feedback') })
+  gradeSubmission(assignmentId, studentId, { score, feedback })
   revalidatePath(`/courses/${courseId}/assignments/${assignmentId}/submissions`, 'page')
+  revalidatePath(`/courses/${courseId}/assignments/${assignmentId}`, 'page')
+}
+
+export async function takeQuizAction(courseId: string, assignmentId: string, studentId: string, fd: FormData): Promise<void> {
+  const quiz = getQuiz(assignmentId)
+  if (!quiz) return
+  // One answer per question, read positionally (q0, q1, …). Unanswered = -1.
+  const answers = quiz.questions.map((_, i) => {
+    const raw = str(fd, `q${i}`)
+    const n = Number(raw)
+    return raw !== '' && !Number.isNaN(n) ? n : -1
+  })
+  submitQuiz(assignmentId, studentId, answers)
   revalidatePath(`/courses/${courseId}/assignments/${assignmentId}`, 'page')
 }

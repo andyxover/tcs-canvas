@@ -42,6 +42,8 @@ Use the **top-right menu** to view the whole app as any teacher or student.
 | Announcements | `/courses/[id]/announcements` |
 | Modules (+ content pages) | `/courses/[id]/modules` |
 | Assignments (list / detail / create / grade) | `/courses/[id]/assignments` |
+| Quizzes (auto-graded, MC + true/false) | an assignment with quiz questions |
+| Rubric grading (click levels → score) | the Grade submissions screen |
 | Gradebook (teacher grid + student view) | `/courses/[id]/grades` |
 | Discussions (threaded) | `/courses/[id]/discussions` |
 | People | `/courses/[id]/people` |

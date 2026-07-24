@@ -54,7 +54,7 @@ export interface Enrollment {
   studentId: string
 }
 
-export type SubmissionType = 'online' | 'offline'
+export type SubmissionType = 'online' | 'offline' | 'quiz'
 
 export interface Assignment {
   id: string
@@ -97,6 +97,27 @@ export interface Submission {
   score: number | null
   feedback: string
   rubricScores: RubricScore[]
+  /** For quiz submissions: the chosen option index per question, aligned to
+   *  the quiz's question order. Empty for non-quiz work. */
+  answers: number[]
+}
+
+export type QuestionKind = 'mc' | 'tf'
+
+export interface QuizQuestion {
+  id: string
+  prompt: string
+  kind: QuestionKind
+  /** Answer choices. For 'tf' this is ['True', 'False']. */
+  options: string[]
+  correctIndex: number
+}
+
+/** A quiz is attached to an assignment whose submissionType is 'quiz'; it is
+ *  auto-graded on submit and flows into the gradebook like any assignment. */
+export interface Quiz {
+  assignmentId: string
+  questions: QuizQuestion[]
 }
 
 export interface RubricLevel {
@@ -185,6 +206,7 @@ export interface LmsData {
   pages: Page[]
   assignments: Assignment[]
   submissions: Submission[]
+  quizzes: Quiz[]
   rubrics: Rubric[]
   announcements: Announcement[]
   discussionTopics: DiscussionTopic[]

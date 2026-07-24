@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getViewer } from '@/lib/session'
-import { getAssignment, getCourse, getSubmission, listRoster } from '@/lib/store'
+import { getAssignment, getCourse, getRubric, getSubmission, listRoster } from '@/lib/store'
 import { isLate } from '@/lib/grade-calc'
+import type { Rubric, Submission } from '@/lib/types'
 import { gradeAction } from '../../actions'
 import { Avatar, Badge, fmtRelative } from '../../../../../_components/ui'
 
@@ -21,6 +22,7 @@ export default async function SubmissionsPage({
   const assignment = getAssignment(assignmentId)
   if (!assignment || assignment.courseId !== courseId) notFound()
   const roster = listRoster(courseId)
+  const rubric = assignment.rubricId ? getRubric(assignment.rubricId) : undefined
 
   return (
     <div className="lms-stack">
@@ -72,43 +74,82 @@ export default async function SubmissionsPage({
                 </div>
               )}
 
-              <form action={action} className="lms-flex lms-wrap" style={{ alignItems: 'flex-end', gap: 12 }}>
-                <div style={{ width: 120 }}>
-                  <label className="lms-label" htmlFor={`score-${student.id}`}>
-                    Score
-                  </label>
-                  <input
-                    id={`score-${student.id}`}
-                    name="score"
-                    type="number"
-                    min={0}
-                    max={assignment.points}
-                    step="any"
-                    defaultValue={sub.score ?? ''}
-                    className="lms-input"
-                    placeholder={`/ ${assignment.points}`}
-                  />
+              <form action={action} className="lms-stack">
+                {rubric ? (
+                  <RubricGrader rubric={rubric} sub={sub} />
+                ) : (
+                  <div style={{ width: 140 }}>
+                    <label className="lms-label" htmlFor={`score-${student.id}`}>
+                      Score
+                    </label>
+                    <input
+                      id={`score-${student.id}`}
+                      name="score"
+                      type="number"
+                      min={0}
+                      max={assignment.points}
+                      step="any"
+                      defaultValue={sub.score ?? ''}
+                      className="lms-input"
+                      placeholder={`/ ${assignment.points}`}
+                    />
+                  </div>
+                )}
+                <div className="lms-flex lms-wrap" style={{ alignItems: 'flex-end', gap: 12 }}>
+                  <div style={{ flex: 1, minWidth: 200 }}>
+                    <label className="lms-label" htmlFor={`fb-${student.id}`}>
+                      Feedback
+                    </label>
+                    <input
+                      id={`fb-${student.id}`}
+                      name="feedback"
+                      defaultValue={sub.feedback}
+                      className="lms-input"
+                      placeholder="Optional comment"
+                    />
+                  </div>
+                  <button type="submit" className="lms-btn lms-btn--primary">
+                    Save
+                  </button>
                 </div>
-                <div style={{ flex: 1, minWidth: 200 }}>
-                  <label className="lms-label" htmlFor={`fb-${student.id}`}>
-                    Feedback
-                  </label>
-                  <input
-                    id={`fb-${student.id}`}
-                    name="feedback"
-                    defaultValue={sub.feedback}
-                    className="lms-input"
-                    placeholder="Optional comment"
-                  />
-                </div>
-                <button type="submit" className="lms-btn lms-btn--primary">
-                  Save
-                </button>
               </form>
             </div>
           )
         })}
       </div>
+    </div>
+  )
+}
+
+function RubricGrader({ rubric, sub }: { rubric: Rubric; sub: Submission }) {
+  return (
+    <div className="lms-stack" style={{ gap: 10 }}>
+      <div className="lms-muted" style={{ fontSize: 12.5 }}>
+        {rubric.title} — the score is the sum of the levels you pick.
+      </div>
+      {rubric.criteria.map((c) => {
+        const chosen = sub.rubricScores.find((r) => r.criterionId === c.id)
+        return (
+          <div key={c.id}>
+            <div style={{ fontWeight: 600, fontSize: 13.5, marginBottom: 6 }}>{c.name}</div>
+            <div className="lms-flex lms-wrap" style={{ gap: 8 }}>
+              {c.levels.map((l) => (
+                <label
+                  key={l.label}
+                  className="lms-flex"
+                  title={l.description}
+                  style={{ gap: 6, border: '1px solid var(--lms-line)', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontSize: 13 }}
+                >
+                  <input type="radio" name={`crit-${c.id}`} value={l.points} defaultChecked={chosen?.points === l.points} />
+                  <span>
+                    {l.label} <span className="lms-faint">· {l.points}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
