@@ -46,6 +46,8 @@ export interface Course {
   syllabus: string
   published: boolean
   gradeSettings: GradeSettings
+  /** Which BC curriculum this course draws its learning standards from. */
+  curriculum?: { subject: string; grade: string }
 }
 
 /** Roster link: which students are in which course. */
@@ -70,6 +72,8 @@ export interface Assignment {
   published: boolean
   submissionType: SubmissionType
   rubricId: string | null
+  /** BC learning standards this coursework assesses (ids into BC_STANDARDS). */
+  standardIds: string[]
   /** Display ordering within the Assignments list. */
   position: number
 }
@@ -86,6 +90,13 @@ export interface RubricScore {
   points: number
 }
 
+/** A teacher's judgement of one student's proficiency on one BC standard,
+ *  evidenced by a particular piece of coursework. */
+export interface StandardAssessment {
+  standardId: string
+  level: import('./bc-curriculum').ProficiencyLevel
+}
+
 export interface Submission {
   id: string
   assignmentId: string
@@ -97,6 +108,8 @@ export interface Submission {
   score: number | null
   feedback: string
   rubricScores: RubricScore[]
+  /** Per-standard proficiency judgements for this submission. */
+  standardAssessments: StandardAssessment[]
   /** For quiz submissions: the chosen option index per question, aligned to
    *  the quiz's question order. Empty for non-quiz work. */
   answers: number[]

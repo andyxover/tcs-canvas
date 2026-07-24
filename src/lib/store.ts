@@ -7,6 +7,7 @@
 
 import { buildSeed } from './seed'
 import { computeCourseGrade, type CourseGrade, type ScoredItem } from './grade-calc'
+import { BC_STANDARDS, type ProficiencyLevel } from './bc-curriculum'
 import type {
   Announcement,
   Assignment,
@@ -23,6 +24,7 @@ import type {
   QuizQuestion,
   Rubric,
   RubricScore,
+  StandardAssessment,
   Submission,
 } from './types'
 
@@ -253,6 +255,7 @@ export interface AssignmentInput {
   dueAt: string | null
   published: boolean
   rubricId: string | null
+  standardIds?: string[]
 }
 
 export function createAssignment(input: AssignmentInput): Assignment {
@@ -268,6 +271,7 @@ export function createAssignment(input: AssignmentInput): Assignment {
     published: input.published,
     submissionType: 'online',
     rubricId: input.rubricId,
+    standardIds: input.standardIds ?? [],
     position: siblings.length,
   }
   data().assignments.push(assignment)
@@ -287,6 +291,7 @@ export interface QuizInput {
   dueAt: string | null
   published: boolean
   questions: QuizQuestion[]
+  standardIds?: string[]
 }
 
 /** Create a quiz: an assignment (submissionType 'quiz') plus its questions. */
@@ -303,6 +308,7 @@ export function createQuizAssignment(input: QuizInput): Assignment {
     published: input.published,
     submissionType: 'quiz',
     rubricId: null,
+    standardIds: input.standardIds ?? [],
     position: siblings.length,
   }
   data().assignments.push(assignment)
@@ -330,6 +336,7 @@ export function updateQuiz(
     dueAt: string | null
     published: boolean
     questions: QuizQuestion[]
+    standardIds?: string[]
   },
 ): void {
   updateAssignment(assignmentId, {
@@ -339,6 +346,7 @@ export function updateQuiz(
     category: input.category,
     dueAt: input.dueAt,
     published: input.published,
+    standardIds: input.standardIds ?? [],
   })
   const quiz = data().quizzes.find((q) => q.assignmentId === assignmentId)
   if (quiz) quiz.questions = input.questions
@@ -373,6 +381,7 @@ function emptySubmission(assignmentId: string, studentId: string): Submission {
     score: null,
     feedback: '',
     rubricScores: [],
+    standardAssessments: [],
     answers: [],
   }
 }
@@ -423,6 +432,59 @@ export function gradeSubmissionWithRubric(
   sub.score = input.rubricScores.reduce((n, r) => n + r.points, 0)
   sub.feedback = input.feedback
   sub.state = 'graded'
+}
+
+// ---------------------------------------------------------------------------
+// BC learning standards
+// ---------------------------------------------------------------------------
+
+/** Record proficiency judgements for one submission (replaces prior ones). */
+export function assessStandards(
+  assignmentId: string,
+  studentId: string,
+  assessments: StandardAssessment[],
+): void {
+  const sub = getSubmission(assignmentId, studentId)
+  sub.standardAssessments = assessments
+}
+
+/** Every standard referenced by a course's published coursework, in catalogue order. */
+export function courseStandardIds(courseId: string): string[] {
+  const seen = new Set<string>()
+  for (const a of listAssignments(courseId)) {
+    if (!a.published) continue
+    for (const id of a.standardIds ?? []) seen.add(id)
+  }
+  return BC_STANDARDS.filter((s) => seen.has(s.id)).map((s) => s.id)
+}
+
+export interface StandardMastery {
+  standardId: string
+  /** Most recent judgement (by submission date), the BC "most recent evidence" view. */
+  latest: ProficiencyLevel | null
+  /** Every judgement recorded, oldest first — the evidence trail. */
+  history: { level: ProficiencyLevel; assignmentId: string; assignmentTitle: string; at: string | null }[]
+}
+
+/** A student's proficiency per standard across a course's coursework. */
+export function studentMastery(courseId: string, studentId: string): StandardMastery[] {
+  const assignments = listAssignments(courseId).filter((a) => a.published)
+  const byStandard = new Map<string, StandardMastery['history']>()
+
+  for (const a of assignments) {
+    const sub = data().submissions.find((s) => s.assignmentId === a.id && s.studentId === studentId)
+    if (!sub) continue
+    for (const sa of sub.standardAssessments ?? []) {
+      const arr = byStandard.get(sa.standardId) ?? []
+      arr.push({ level: sa.level, assignmentId: a.id, assignmentTitle: a.title, at: sub.submittedAt ?? a.dueAt })
+      byStandard.set(sa.standardId, arr)
+    }
+  }
+
+  return courseStandardIds(courseId).map((standardId) => {
+    const history = (byStandard.get(standardId) ?? []).sort((x, y) => (x.at ?? '').localeCompare(y.at ?? ''))
+    return { standardId, latest: history.length > 0 ? history[history.length - 1].level : null, history }
+  })
 }
 
 // ---------------------------------------------------------------------------

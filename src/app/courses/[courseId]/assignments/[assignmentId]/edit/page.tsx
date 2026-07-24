@@ -2,8 +2,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getViewer } from '@/lib/session'
 import { getAssignment, getCourse, listRubrics } from '@/lib/store'
+import { standardsFor } from '@/lib/bc-curriculum'
 import { updateAssignmentAction } from '../../actions'
 import { RichTextEditor } from '../../../../../_components/RichTextEditor'
+import { StandardPicker } from '../../../../../_components/StandardPicker'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,6 +24,7 @@ export default async function EditAssignmentPage({
 
   const isQuiz = a.submissionType === 'quiz'
   const rubrics = listRubrics(course.id)
+  const standards = standardsFor(course.curriculum?.subject, course.curriculum?.grade)
   const action = updateAssignmentAction.bind(null, course.id, a.id)
   const dueLocal = a.dueAt ? a.dueAt.slice(0, 16) : ''
 
@@ -90,6 +93,18 @@ export default async function EditAssignmentPage({
               </select>
             </div>
           )}
+        </div>
+
+        <div className="lms-field">
+          <label className="lms-label">
+            BC learning standards
+            {course.curriculum && (
+              <span className="lms-faint" style={{ fontWeight: 400 }}>
+                {' '}— {course.curriculum.subject} {course.curriculum.grade}
+              </span>
+            )}
+          </label>
+          <StandardPicker available={standards} defaultSelected={a.standardIds ?? []} />
         </div>
 
         <div className="lms-field">

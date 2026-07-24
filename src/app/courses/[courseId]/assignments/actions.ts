@@ -8,6 +8,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import {
+  assessStandards,
   createAssignment,
   createQuizAssignment,
   deleteAssignment,
@@ -21,11 +22,16 @@ import {
   updateAssignment,
   updateQuiz,
 } from '@/lib/store'
-import type { QuizQuestion, RubricScore } from '@/lib/types'
+import { PROFICIENCY_LEVELS, type ProficiencyLevel } from '@/lib/bc-curriculum'
+import type { QuizQuestion, RubricScore, StandardAssessment } from '@/lib/types'
 
 function str(fd: FormData, key: string): string {
   const v = fd.get(key)
   return typeof v === 'string' ? v.trim() : ''
+}
+
+function standardIds(fd: FormData): string[] {
+  return fd.getAll('standardIds').filter((v): v is string => typeof v === 'string')
 }
 
 function toIso(local: string): string | null {
@@ -46,6 +52,7 @@ export async function createAssignmentAction(courseId: string, fd: FormData): Pr
     dueAt: toIso(str(fd, 'dueAt')),
     published: fd.get('published') === 'on',
     rubricId: str(fd, 'rubricId') || null,
+    standardIds: standardIds(fd),
   })
   revalidatePath(`/courses/${courseId}/assignments`, 'page')
   redirect(`/courses/${courseId}/assignments/${created.id}`)
@@ -88,6 +95,7 @@ export async function createQuizAction(courseId: string, fd: FormData): Promise<
     dueAt: toIso(str(fd, 'dueAt')),
     published: fd.get('published') === 'on',
     questions,
+    standardIds: standardIds(fd),
   })
   revalidatePath(`/courses/${courseId}/assignments`, 'page')
   redirect(`/courses/${courseId}/assignments/${created.id}`)
@@ -104,6 +112,7 @@ export async function updateQuizAction(courseId: string, assignmentId: string, f
     dueAt: toIso(str(fd, 'dueAt')),
     published: fd.get('published') === 'on',
     questions,
+    standardIds: standardIds(fd),
   })
   revalidatePath(`/courses/${courseId}/assignments/${assignmentId}`, 'page')
   redirect(`/courses/${courseId}/assignments/${assignmentId}`)
@@ -119,6 +128,7 @@ export async function updateAssignmentAction(courseId: string, assignmentId: str
     dueAt: toIso(str(fd, 'dueAt')),
     published: fd.get('published') === 'on',
     rubricId: str(fd, 'rubricId') || null,
+    standardIds: standardIds(fd),
   })
   revalidatePath(`/courses/${courseId}/assignments/${assignmentId}`, 'page')
   redirect(`/courses/${courseId}/assignments/${assignmentId}`)
@@ -144,6 +154,18 @@ export async function gradeAction(courseId: string, assignmentId: string, studen
   const assignment = getAssignment(assignmentId)
   const feedback = str(fd, 'feedback')
   const rubric = assignment?.rubricId ? getRubric(assignment.rubricId) : undefined
+
+  // BC proficiency judgements, one per attached standard (blank = not assessed).
+  const assessments: StandardAssessment[] = []
+  for (const sid of assignment?.standardIds ?? []) {
+    const raw = str(fd, `std-${sid}`)
+    if (PROFICIENCY_LEVELS.includes(raw as ProficiencyLevel)) {
+      assessments.push({ standardId: sid, level: raw as ProficiencyLevel })
+    }
+  }
+  if ((assignment?.standardIds ?? []).length > 0) {
+    assessStandards(assignmentId, studentId, assessments)
+  }
 
   // Rubric path: score is the sum of the selected level points per criterion.
   if (rubric) {

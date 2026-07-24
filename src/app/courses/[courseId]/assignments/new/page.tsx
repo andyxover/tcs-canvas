@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { listRubrics } from '@/lib/store'
+import { standardsFor } from '@/lib/bc-curriculum'
 import { courseCtx } from '../../_shared'
 import { createAssignmentAction } from '../actions'
 import { RichTextEditor } from '../../../../_components/RichTextEditor'
+import { StandardPicker } from '../../../../_components/StandardPicker'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +13,7 @@ export default async function NewAssignmentPage({ params }: { params: Promise<{ 
   const { course, isTeacher } = await courseCtx(params)
   if (!isTeacher) notFound()
   const rubrics = listRubrics(course.id)
+  const standards = standardsFor(course.curriculum?.subject, course.curriculum?.grade)
   const action = createAssignmentAction.bind(null, course.id)
 
   return (
@@ -76,6 +79,18 @@ export default async function NewAssignmentPage({ params }: { params: Promise<{ 
               </select>
             </div>
           )}
+        </div>
+
+        <div className="lms-field">
+          <label className="lms-label">
+            BC learning standards
+            {course.curriculum && (
+              <span className="lms-faint" style={{ fontWeight: 400 }}>
+                {' '}— {course.curriculum.subject} {course.curriculum.grade}
+              </span>
+            )}
+          </label>
+          <StandardPicker available={standards} />
         </div>
 
         <div className="lms-field">

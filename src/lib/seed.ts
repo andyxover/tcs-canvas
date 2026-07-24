@@ -3,6 +3,7 @@
 // load. Submissions are generated from a stable hash of (student, assignment)
 // so the same cells are graded / missing / pending on every restart.
 
+import type { ProficiencyLevel } from './bc-curriculum'
 import type {
   Announcement,
   Assignment,
@@ -61,6 +62,7 @@ const courses: Course[] = [
     syllabus:
       '<h2>Welcome to Science 9</h2><p>This year we explore matter, energy, and living systems through inquiry and hands-on labs. Bring curiosity and a lab notebook.</p><h3>How you are graded</h3><p>Homework 20% · Labs 30% · Quizzes 20% · Tests 30%. Late work loses 10% per day.</p>',
     published: true,
+    curriculum: { subject: 'Science', grade: '9' },
     gradeSettings: {
       calc: 'weighted',
       showTotalsToStudents: true,
@@ -82,6 +84,7 @@ const courses: Course[] = [
     syllabus:
       '<h2>Mathematics 9</h2><p>Algebraic reasoning, linear relations, and an introduction to proof. Practice daily — mathematics rewards repetition.</p>',
     published: true,
+    curriculum: { subject: 'Mathematics', grade: '9' },
     gradeSettings: {
       calc: 'weighted',
       showTotalsToStudents: true,
@@ -136,23 +139,24 @@ type AssignmentSeed = {
   points: number
   dueOffset: number
   rubricId?: string
+  standardIds?: string[]
   instructions: string
 }
 
 const sci9Assignments: AssignmentSeed[] = [
-  { id: 'a-sci-hw1', title: 'Reading: States of Matter', category: 'Homework', points: 10, dueOffset: -18, instructions: '<p>Read pp. 12–24 and answer the review questions.</p>' },
-  { id: 'a-sci-lab1', title: 'Lab: Density of Solids', category: 'Labs', points: 20, dueOffset: -12, rubricId: 'r-lab', instructions: '<p>Measure and calculate the density of three unknown solids. Submit a full lab report.</p>' },
-  { id: 'a-sci-quiz1', title: 'Quiz: Particle Theory', category: 'Quizzes', points: 20, dueOffset: -8, instructions: '<p>Short quiz on the particle theory of matter.</p>' },
-  { id: 'a-sci-hw2', title: 'Worksheet: Phase Changes', category: 'Homework', points: 10, dueOffset: -4, instructions: '<p>Complete the phase-change worksheet.</p>' },
-  { id: 'a-sci-lab2', title: 'Lab: Heating Curve of Water', category: 'Labs', points: 20, dueOffset: 3, rubricId: 'r-lab', instructions: '<p>Plot the heating curve of water and identify phase transitions.</p>' },
-  { id: 'a-sci-test1', title: 'Unit Test: Matter', category: 'Tests', points: 50, dueOffset: 9, instructions: '<p>Unit test covering all of Unit 1.</p>' },
+  { id: 'a-sci-hw1', title: 'Reading: States of Matter', category: 'Homework', points: 10, dueOffset: -18, standardIds: ['sci9-bi-2', 'sci9-co-5'], instructions: '<p>Read pp. 12–24 and answer the review questions.</p>' },
+  { id: 'a-sci-lab1', title: 'Lab: Density of Solids', category: 'Labs', points: 20, dueOffset: -12, rubricId: 'r-lab', standardIds: ['sci9-cc-3', 'sci9-cc-4', 'sci9-cc-5', 'core-think-2'], instructions: '<p>Measure and calculate the density of three unknown solids. Submit a full lab report.</p>' },
+  { id: 'a-sci-quiz1', title: 'Quiz: Particle Theory', category: 'Quizzes', points: 20, dueOffset: -8, standardIds: ['sci9-bi-2', 'sci9-co-6'], instructions: '<p>Short quiz on the particle theory of matter.</p>' },
+  { id: 'a-sci-hw2', title: 'Worksheet: Phase Changes', category: 'Homework', points: 10, dueOffset: -4, standardIds: ['sci9-co-9'], instructions: '<p>Complete the phase-change worksheet.</p>' },
+  { id: 'a-sci-lab2', title: 'Lab: Heating Curve of Water', category: 'Labs', points: 20, dueOffset: 3, rubricId: 'r-lab', standardIds: ['sci9-cc-5', 'sci9-cc-6', 'sci9-co-9', 'core-com-1'], instructions: '<p>Plot the heating curve of water and identify phase transitions.</p>' },
+  { id: 'a-sci-test1', title: 'Unit Test: Matter', category: 'Tests', points: 50, dueOffset: 9, standardIds: ['sci9-bi-2', 'sci9-co-5', 'sci9-co-6', 'sci9-cc-7'], instructions: '<p>Unit test covering all of Unit 1.</p>' },
 ]
 
 const math9Assignments: AssignmentSeed[] = [
-  { id: 'a-math-p1', title: 'Practice Set 1: Integers', category: 'Practice', points: 10, dueOffset: -15, instructions: '<p>Complete practice set 1.</p>' },
-  { id: 'a-math-quiz1', title: 'Quiz: Order of Operations', category: 'Quizzes', points: 20, dueOffset: -9, instructions: '<p>Quiz on order of operations.</p>' },
-  { id: 'a-math-p2', title: 'Practice Set 2: Linear Equations', category: 'Practice', points: 10, dueOffset: -3, instructions: '<p>Complete practice set 2.</p>' },
-  { id: 'a-math-exam1', title: 'Midterm Exam', category: 'Exams', points: 100, dueOffset: 7, instructions: '<p>Covers integers through linear equations.</p>' },
+  { id: 'a-math-p1', title: 'Practice Set 1: Integers', category: 'Practice', points: 10, dueOffset: -15, standardIds: ['ma9-bi-2', 'ma9-co-1'], instructions: '<p>Complete practice set 1.</p>' },
+  { id: 'a-math-quiz1', title: 'Quiz: Order of Operations', category: 'Quizzes', points: 20, dueOffset: -9, standardIds: ['ma9-co-1', 'ma9-cc-2'], instructions: '<p>Quiz on order of operations.</p>' },
+  { id: 'a-math-p2', title: 'Practice Set 2: Linear Equations', category: 'Practice', points: 10, dueOffset: -3, standardIds: ['ma9-bi-3', 'ma9-co-5', 'ma9-cc-4'], instructions: '<p>Complete practice set 2.</p>' },
+  { id: 'a-math-exam1', title: 'Midterm Exam', category: 'Exams', points: 100, dueOffset: 7, standardIds: ['ma9-bi-2', 'ma9-bi-3', 'ma9-co-1', 'ma9-co-5', 'ma9-cc-6'], instructions: '<p>Covers integers through linear equations.</p>' },
 ]
 
 // A live, takeable quiz — future due date so students can sit it in the demo.
@@ -162,6 +166,7 @@ interface QuizSeed {
   category: string
   points: number
   dueOffset: number
+  standardIds?: string[]
   questions: QuizQuestion[]
 }
 
@@ -172,6 +177,7 @@ const sci9Quizzes: QuizSeed[] = [
     category: 'Quizzes',
     points: 12,
     dueOffset: 4,
+    standardIds: ['sci9-cc-3', 'core-ps-1'],
     questions: [
       { id: 'q1', prompt: 'Before starting any lab, the first thing you should do is…', kind: 'mc', options: ['Put on safety goggles', 'Taste the chemicals', 'Open every window', 'Turn off the lights'], correctIndex: 0 },
       { id: 'q2', prompt: 'Long hair must be tied back during a lab.', kind: 'tf', options: ['True', 'False'], correctIndex: 0 },
@@ -194,6 +200,7 @@ function buildAssignments(): Assignment[] {
       published: true,
       submissionType: 'online' as const,
       rubricId: s.rubricId ?? null,
+      standardIds: s.standardIds ?? [],
       position: i,
     }))
   const sci9 = make('c-sci9', sci9Assignments)
@@ -209,6 +216,7 @@ function buildAssignments(): Assignment[] {
     published: true,
     submissionType: 'quiz' as const,
     rubricId: null,
+    standardIds: q.standardIds ?? [],
     position: sci9.length + i,
   }))
   return [...sci9, ...sci9Q, ...math9]
@@ -238,7 +246,13 @@ function buildSubmissions(assignments: Assignment[]): Submission[] {
         // Score band 60–100% skewed high, stable per cell.
         const pct = 0.6 + hash01(`score:${s.id}:${a.id}`) * 0.4
         const score = Math.round(a.points * pct)
-        out.push(base(a.id, s.id, 'graded', daysFromNow(offsetForDue(a) - 0.5), score))
+        const sub = base(a.id, s.id, 'graded', daysFromNow(offsetForDue(a) - 0.5), score)
+        // Proficiency judgements track the score band, so the mastery grid has
+        // believable data on first load.
+        const level: ProficiencyLevel =
+          pct >= 0.93 ? 'extending' : pct >= 0.78 ? 'proficient' : pct >= 0.68 ? 'developing' : 'emerging'
+        sub.standardAssessments = (a.standardIds ?? []).map((standardId) => ({ standardId, level }))
+        out.push(sub)
       }
     }
   }
@@ -268,6 +282,7 @@ function base(
     score,
     feedback: '',
     rubricScores: [],
+    standardAssessments: [],
     answers: [],
   }
 }

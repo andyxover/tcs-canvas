@@ -2,9 +2,11 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getViewer } from '@/lib/session'
 import { getAssignment, getCourse, getQuiz } from '@/lib/store'
+import { standardsFor } from '@/lib/bc-curriculum'
 import { updateQuizAction } from '../../actions'
 import { QuizBuilder } from '../../_components/QuizBuilder'
 import { RichTextEditor } from '../../../../../_components/RichTextEditor'
+import { StandardPicker } from '../../../../../_components/StandardPicker'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,6 +26,7 @@ export default async function EditQuizPage({
 
   const action = updateQuizAction.bind(null, course.id, a.id)
   const categories = course.gradeSettings.categories
+  const standards = standardsFor(course.curriculum?.subject, course.curriculum?.grade)
   const dueLocal = a.dueAt ? a.dueAt.slice(0, 16) : ''
 
   return (
@@ -82,6 +85,11 @@ export default async function EditQuizPage({
               <span>Published</span>
             </label>
           </div>
+        </div>
+
+        <div className="lms-card lms-card--pad">
+          <label className="lms-label">BC learning standards</label>
+          <StandardPicker available={standards} defaultSelected={a.standardIds ?? []} />
         </div>
 
         <h2 style={{ fontSize: 15, fontWeight: 700, margin: '4px 0 0' }}>Questions</h2>

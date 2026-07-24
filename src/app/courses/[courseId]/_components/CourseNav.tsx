@@ -17,6 +17,7 @@ const ITEMS = [
   { seg: 'modules', label: 'Modules', icon: '▤', teacherOnly: false },
   { seg: 'assignments', label: 'Assignments', icon: '✎', teacherOnly: false },
   { seg: 'grades', label: 'Grades', icon: '◈', teacherOnly: false },
+  { seg: 'standards', label: 'Standards', icon: '◆', teacherOnly: false },
   { seg: 'discussions', label: 'Discussions', icon: '💬', teacherOnly: false },
   { seg: 'people', label: 'People', icon: '☺', teacherOnly: false },
   { seg: 'syllabus', label: 'Syllabus', icon: '❋', teacherOnly: false },

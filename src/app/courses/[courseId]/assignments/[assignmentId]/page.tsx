@@ -11,7 +11,9 @@ import {
 } from '@/lib/store'
 import { isLate, isMissing } from '@/lib/grade-calc'
 import { getViewer } from '@/lib/session'
+import type { ProficiencyLevel } from '@/lib/bc-curriculum'
 import type { Quiz } from '@/lib/types'
+import { StandardList } from '../../../../_components/Standards'
 import { deleteAssignmentAction, takeQuizAction, turnInAction } from '../actions'
 import { Badge, RichText, fmtDay, fmtRelative } from '../../../../_components/ui'
 
@@ -81,6 +83,21 @@ export default async function AssignmentDetailPage({
         )}
       </div>
 
+      {(assignment.standardIds ?? []).length > 0 && (
+        <section>
+          <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 4px' }}>Learning standards</h2>
+          <p className="lms-muted" style={{ margin: '0 0 10px', fontSize: 13 }}>
+            {isTeacher
+              ? 'What this work gives evidence for. Assess proficiency when you grade.'
+              : 'What this work shows you can do.'}
+          </p>
+          <StandardList
+            standardIds={assignment.standardIds}
+            levels={isTeacher ? undefined : studentLevels(assignment.id, viewer.person.id)}
+          />
+        </section>
+      )}
+
       {!isQuiz && rubric && (
         <section>
           <h2 style={{ fontSize: 15, fontWeight: 700 }}>{rubric.title}</h2>
@@ -114,6 +131,14 @@ export default async function AssignmentDetailPage({
       )}
     </div>
   )
+}
+
+/** Map of standardId → level for one student's submission, for inline display. */
+function studentLevels(assignmentId: string, studentId: string): Record<string, ProficiencyLevel> {
+  const sub = getSubmission(assignmentId, studentId)
+  const out: Record<string, ProficiencyLevel> = {}
+  for (const sa of sub.standardAssessments ?? []) out[sa.standardId] = sa.level
+  return out
 }
 
 // ---- Regular assignments -------------------------------------------------

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { getViewer } from '@/lib/session'
 import { getAssignment, getCourse, getRubric, getSubmission, listRoster } from '@/lib/store'
 import { isLate } from '@/lib/grade-calc'
+import { PROFICIENCY_LEVELS, PROFICIENCY_META, getStandard } from '@/lib/bc-curriculum'
 import type { Rubric, Submission } from '@/lib/types'
 import { gradeAction } from '../../actions'
 import { Avatar, Badge, fmtRelative } from '../../../../../_components/ui'
@@ -23,6 +24,7 @@ export default async function SubmissionsPage({
   if (!assignment || assignment.courseId !== courseId) notFound()
   const roster = listRoster(courseId)
   const rubric = assignment.rubricId ? getRubric(assignment.rubricId) : undefined
+  const standardIds = assignment.standardIds ?? []
 
   return (
     <div className="lms-stack">
@@ -95,6 +97,8 @@ export default async function SubmissionsPage({
                     />
                   </div>
                 )}
+                {standardIds.length > 0 && <StandardAssessor standardIds={standardIds} sub={sub} />}
+
                 <div className="lms-flex lms-wrap" style={{ alignItems: 'flex-end', gap: 12 }}>
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <label className="lms-label" htmlFor={`fb-${student.id}`}>
@@ -117,6 +121,45 @@ export default async function SubmissionsPage({
           )
         })}
       </div>
+    </div>
+  )
+}
+
+function StandardAssessor({ standardIds, sub }: { standardIds: string[]; sub: Submission }) {
+  const chosen = new Map(sub.standardAssessments?.map((a) => [a.standardId, a.level]) ?? [])
+  return (
+    <div className="lms-stack" style={{ gap: 10 }}>
+      <div className="lms-muted" style={{ fontSize: 12.5 }}>
+        Proficiency against the BC learning standards this work evidences.
+      </div>
+      {standardIds.map((sid) => {
+        const std = getStandard(sid)
+        if (!std) return null
+        return (
+          <div key={sid}>
+            <div style={{ fontSize: 13, marginBottom: 5 }}>
+              <code className="lms-stdpick__code">{std.code}</code>{' '}
+              <span className="lms-muted">{std.text}</span>
+            </div>
+            <div className="lms-flex lms-wrap" style={{ gap: 6 }}>
+              {PROFICIENCY_LEVELS.map((lvl) => {
+                const m = PROFICIENCY_META[lvl]
+                return (
+                  <label
+                    key={lvl}
+                    className="lms-flex"
+                    title={m.description}
+                    style={{ gap: 5, border: '1px solid var(--lms-line)', borderRadius: 8, padding: '5px 9px', cursor: 'pointer', fontSize: 12.5 }}
+                  >
+                    <input type="radio" name={`std-${sid}`} value={lvl} defaultChecked={chosen.get(sid) === lvl} />
+                    <span style={{ color: m.color, fontWeight: 600 }}>{m.label}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

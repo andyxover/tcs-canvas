@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { standardsFor } from '@/lib/bc-curriculum'
 import { courseCtx } from '../../_shared'
 import { createQuizAction } from '../actions'
 import { QuizBuilder } from '../_components/QuizBuilder'
 import { RichTextEditor } from '../../../../_components/RichTextEditor'
+import { StandardPicker } from '../../../../_components/StandardPicker'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,6 +14,7 @@ export default async function NewQuizPage({ params }: { params: Promise<{ course
   if (!isTeacher) notFound()
   const action = createQuizAction.bind(null, course.id)
   const categories = course.gradeSettings.categories
+  const standards = standardsFor(course.curriculum?.subject, course.curriculum?.grade)
 
   return (
     <div className="lms-stack" style={{ maxWidth: 720 }}>
@@ -68,6 +71,11 @@ export default async function NewQuizPage({ params }: { params: Promise<{ course
               <span>Publish immediately</span>
             </label>
           </div>
+        </div>
+
+        <div className="lms-card lms-card--pad">
+          <label className="lms-label">BC learning standards</label>
+          <StandardPicker available={standards} />
         </div>
 
         <h2 style={{ fontSize: 15, fontWeight: 700, margin: '4px 0 0' }}>Questions</h2>
