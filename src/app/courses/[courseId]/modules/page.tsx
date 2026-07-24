@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { listAssignments, listModules } from '@/lib/store'
 import type { CourseModule, ModuleItem } from '@/lib/types'
 import { courseCtx } from '../_shared'
-import { Badge, EmptyState } from '../../../_components/ui'
+import { Badge, EmptyState, formatBytes } from '../../../_components/ui'
 import { addModuleItemAction, createModuleAction } from './actions'
 
 export const dynamic = 'force-dynamic'
@@ -11,6 +11,7 @@ const ITEM_ICON: Record<ModuleItem['kind'], string> = {
   assignment: '✎',
   page: '❐',
   link: '🔗',
+  file: '📄',
 }
 
 export default async function ModulesPage({ params }: { params: Promise<{ courseId: string }> }) {
@@ -85,6 +86,7 @@ function ModuleCard({
                 <select name="kind" className="lms-select" defaultValue="assignment">
                   <option value="assignment">Existing assignment</option>
                   <option value="link">External link</option>
+                  <option value="file">File upload</option>
                 </select>
               </div>
               <div className="lms-field" style={{ margin: 0 }}>
@@ -109,6 +111,10 @@ function ModuleCard({
                 <input name="url" className="lms-input" placeholder="https://…" />
               </div>
             </div>
+            <div className="lms-field" style={{ margin: 0 }}>
+              <label className="lms-label">File upload (choose a file)</label>
+              <input name="file" type="file" className="lms-input" />
+            </div>
             <button type="submit" className="lms-btn lms-btn--primary lms-btn--sm" style={{ alignSelf: 'flex-start' }}>
               Add item
             </button>
@@ -121,6 +127,8 @@ function ModuleCard({
 
 function ModuleItemRow({ item, courseId }: { item: ModuleItem; courseId: string }) {
   const icon = ITEM_ICON[item.kind]
+  const meta =
+    item.kind === 'file' && item.fileSize != null ? `File · ${formatBytes(item.fileSize)}` : item.kind
   const inner = (
     <>
       <div className="lms-row__icon" aria-hidden>
@@ -128,8 +136,9 @@ function ModuleItemRow({ item, courseId }: { item: ModuleItem; courseId: string 
       </div>
       <div className="lms-row__main">
         <div className="lms-row__title">{item.title}</div>
-        <div className="lms-row__meta">{item.kind}</div>
+        <div className="lms-row__meta">{meta}</div>
       </div>
+      {item.kind === 'file' && <span className="lms-badge lms-badge--muted">Download</span>}
     </>
   )
 

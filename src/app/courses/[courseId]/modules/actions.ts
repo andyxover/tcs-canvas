@@ -25,6 +25,12 @@ export async function addModuleItemAction(courseId: string, moduleId: string, fd
     const url = str(fd, 'url')
     const title = str(fd, 'title') || url
     if (url) addModuleItem(moduleId, { kind, title, refId: null, url })
+  } else if (kind === 'file') {
+    // Real file-picker upload; we record name + size only (no content stored).
+    const file = fd.get('file')
+    if (file instanceof File && file.size > 0) {
+      addModuleItem(moduleId, { kind, title: file.name, refId: null, url: null, fileSize: file.size })
+    }
   }
   revalidatePath(`/courses/${courseId}/modules`, 'page')
 }

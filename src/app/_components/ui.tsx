@@ -74,6 +74,12 @@ export function fmtDay(iso: string | null): string {
   return DAY_FMT.format(new Date(iso))
 }
 
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 /** Human "in 3 days" / "2 days ago" relative to now. */
 export function fmtRelative(iso: string | null): string {
   if (!iso) return ''

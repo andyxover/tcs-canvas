@@ -139,7 +139,7 @@ export interface Rubric {
   criteria: RubricCriterion[]
 }
 
-export type ModuleItemKind = 'assignment' | 'page' | 'link'
+export type ModuleItemKind = 'assignment' | 'page' | 'link' | 'file'
 
 export interface ModuleItem {
   id: string
@@ -149,6 +149,8 @@ export interface ModuleItem {
   refId: string | null
   /** External URL for kind==='link'. */
   url: string | null
+  /** Size in bytes for kind==='file' (metadata only — no content stored). */
+  fileSize?: number | null
   position: number
 }
 
