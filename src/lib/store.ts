@@ -86,6 +86,11 @@ export function saveGradeSettings(courseId: string, settings: GradeSettings): vo
   if (c) c.gradeSettings = settings
 }
 
+export function updateCourseSyllabus(courseId: string, syllabus: string): void {
+  const c = getCourse(courseId)
+  if (c) c.syllabus = syllabus
+}
+
 // ---------------------------------------------------------------------------
 // Assignments
 // ---------------------------------------------------------------------------
@@ -223,6 +228,18 @@ export function updateAssignment(id: string, patch: Partial<AssignmentInput>): v
   const a = getAssignment(id)
   if (!a) return
   Object.assign(a, patch)
+}
+
+/** Delete an assignment and everything hanging off it (submissions, quiz,
+ *  and any module items that referenced it). */
+export function deleteAssignment(id: string): void {
+  const d = data()
+  d.assignments = d.assignments.filter((a) => a.id !== id)
+  d.submissions = d.submissions.filter((s) => s.assignmentId !== id)
+  d.quizzes = d.quizzes.filter((q) => q.assignmentId !== id)
+  for (const m of d.modules) {
+    m.items = m.items.filter((it) => !(it.kind === 'assignment' && it.refId === id))
+  }
 }
 
 // ---------------------------------------------------------------------------

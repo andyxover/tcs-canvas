@@ -10,6 +10,7 @@ import { redirect } from 'next/navigation'
 import {
   createAssignment,
   createQuizAssignment,
+  deleteAssignment,
   gradeSubmission,
   gradeSubmissionWithRubric,
   getAssignment,
@@ -17,6 +18,7 @@ import {
   getRubric,
   submitQuiz,
   turnInSubmission,
+  updateAssignment,
 } from '@/lib/store'
 import type { QuizQuestion, RubricScore } from '@/lib/types'
 
@@ -84,6 +86,27 @@ export async function createQuizAction(courseId: string, fd: FormData): Promise<
   })
   revalidatePath(`/courses/${courseId}/assignments`, 'page')
   redirect(`/courses/${courseId}/assignments/${created.id}`)
+}
+
+export async function updateAssignmentAction(courseId: string, assignmentId: string, fd: FormData): Promise<void> {
+  const points = Math.max(0, Math.min(1000, Number(str(fd, 'points')) || 0))
+  updateAssignment(assignmentId, {
+    title: str(fd, 'title') || 'Untitled assignment',
+    instructions: str(fd, 'instructions'),
+    points,
+    category: str(fd, 'category') || 'Assignments',
+    dueAt: toIso(str(fd, 'dueAt')),
+    published: fd.get('published') === 'on',
+    rubricId: str(fd, 'rubricId') || null,
+  })
+  revalidatePath(`/courses/${courseId}/assignments/${assignmentId}`, 'page')
+  redirect(`/courses/${courseId}/assignments/${assignmentId}`)
+}
+
+export async function deleteAssignmentAction(courseId: string, assignmentId: string): Promise<void> {
+  deleteAssignment(assignmentId)
+  revalidatePath(`/courses/${courseId}/assignments`, 'page')
+  redirect(`/courses/${courseId}/assignments`)
 }
 
 export async function turnInAction(courseId: string, assignmentId: string, studentId: string, fd: FormData): Promise<void> {

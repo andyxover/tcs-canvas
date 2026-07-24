@@ -12,7 +12,7 @@ import {
 import { isLate, isMissing } from '@/lib/grade-calc'
 import { getViewer } from '@/lib/session'
 import type { Quiz } from '@/lib/types'
-import { takeQuizAction, turnInAction } from '../actions'
+import { deleteAssignmentAction, takeQuizAction, turnInAction } from '../actions'
 import { Badge, RichText, fmtDay, fmtRelative } from '../../../../_components/ui'
 
 export const dynamic = 'force-dynamic'
@@ -50,10 +50,26 @@ export default async function AssignmentDetailPage({
             {!assignment.published && <Badge tone="warn">Draft</Badge>}
           </div>
         </div>
-        {isTeacher && !isQuiz && (
-          <Link href={`/courses/${course.id}/assignments/${assignment.id}/submissions`} className="lms-btn lms-btn--primary lms-btn--sm">
-            Grade submissions
-          </Link>
+        {isTeacher && (
+          <div className="lms-flex lms-gap-sm lms-wrap" style={{ justifyContent: 'flex-end' }}>
+            {!isQuiz && (
+              <Link href={`/courses/${course.id}/assignments/${assignment.id}/submissions`} className="lms-btn lms-btn--primary lms-btn--sm">
+                Grade submissions
+              </Link>
+            )}
+            <Link href={`/courses/${course.id}/assignments/${assignment.id}/edit`} className="lms-btn lms-btn--sm">
+              Edit
+            </Link>
+            <details className="lms-inline-delete">
+              <summary className="lms-btn lms-btn--sm lms-btn--danger-ghost">Delete</summary>
+              <form action={deleteAssignmentAction.bind(null, course.id, assignment.id)} className="lms-delete-confirm">
+                <span className="lms-muted" style={{ fontSize: 12.5 }}>Delete this {isQuiz ? 'quiz' : 'assignment'} and all submissions?</span>
+                <button type="submit" className="lms-btn lms-btn--sm lms-btn--danger">
+                  Yes, delete
+                </button>
+              </form>
+            </details>
+          </div>
         )}
       </div>
 
