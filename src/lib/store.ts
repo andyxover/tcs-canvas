@@ -91,6 +91,14 @@ export function updateCourseSyllabus(courseId: string, syllabus: string): void {
   if (c) c.syllabus = syllabus
 }
 
+export function updateCourse(
+  courseId: string,
+  patch: Partial<Pick<Course, 'name' | 'code' | 'color' | 'term'>>,
+): void {
+  const c = getCourse(courseId)
+  if (c) Object.assign(c, patch)
+}
+
 // ---------------------------------------------------------------------------
 // Assignments
 // ---------------------------------------------------------------------------
