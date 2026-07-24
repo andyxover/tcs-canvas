@@ -9,14 +9,11 @@ function str(fd: FormData, key: string): string {
   return typeof v === 'string' ? v.trim() : ''
 }
 
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
 export async function createTopicAction(courseId: string, authorId: string, fd: FormData): Promise<void> {
   const title = str(fd, 'title') || 'Untitled topic'
+  // Trusted sandbox HTML from the rich-text editor (rendered via RichText).
   const body = str(fd, 'body')
-  const topic = createDiscussionTopic({ courseId, authorId, title, body: body ? `<p>${escapeHtml(body)}</p>` : '' })
+  const topic = createDiscussionTopic({ courseId, authorId, title, body })
   revalidatePath(`/courses/${courseId}/discussions`, 'page')
   redirect(`/courses/${courseId}/discussions/${topic.id}`)
 }

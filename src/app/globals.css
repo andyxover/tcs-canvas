@@ -2,6 +2,62 @@
 html, body { margin: 0; padding: 0; }
 body { background: #f4f5f7; }
 
+/* ---- Rich text editor (TipTap) ---- */
+.lms .lms-editor {
+  position: relative;
+  border: 1px solid var(--lms-line-strong);
+  border-radius: var(--lms-radius-sm);
+  background: var(--lms-surface);
+  overflow: hidden;
+}
+.lms .lms-editor:focus-within {
+  border-color: var(--lms-accent);
+  box-shadow: 0 0 0 3px rgba(43, 92, 255, 0.14);
+}
+.lms .lms-editor__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  border-bottom: 1px solid var(--lms-line);
+  background: var(--lms-bg);
+}
+.lms .lms-editor__btn {
+  min-width: 30px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--lms-ink-soft);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lms .lms-editor__btn:hover { background: var(--lms-surface); color: var(--lms-ink); }
+.lms .lms-editor__btn[data-active='true'] {
+  background: var(--lms-info-bg);
+  color: var(--lms-accent-ink);
+}
+.lms .lms-editor__content {
+  padding: 10px 12px;
+  outline: none;
+}
+.lms .lms-editor__content > * + * { margin-top: 8px; }
+.lms .lms-editor__content h2 { font-size: 18px; font-weight: 700; margin: 6px 0; }
+.lms .lms-editor__content h3 { font-size: 15px; font-weight: 700; margin: 4px 0; }
+.lms .lms-editor__content ul { padding-left: 20px; list-style: disc; }
+.lms .lms-editor__content ol { padding-left: 20px; list-style: decimal; }
+.lms .lms-editor__placeholder {
+  position: absolute;
+  top: 46px;
+  left: 12px;
+  color: var(--lms-ink-faint);
+  pointer-events: none;
+  font-size: 14px;
+}
+
 /* Standalone LMS sandbox styles. Everything is scoped under `.lms` so the
    sandbox can't leak into the main portal. Canvas-inspired: a global top bar,
    a per-course left nav, a calm content column with clear hierarchy. */

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { courseCtx } from '../../_shared'
 import { createQuizAction } from '../actions'
 import { QuizBuilder } from '../_components/QuizBuilder'
+import { RichTextEditor } from '../../../../_components/RichTextEditor'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,10 +30,8 @@ export default async function NewQuizPage({ params }: { params: Promise<{ course
           </div>
 
           <div className="lms-field">
-            <label className="lms-label" htmlFor="instructions">
-              Instructions (optional)
-            </label>
-            <textarea id="instructions" name="instructions" className="lms-textarea" style={{ minHeight: 70 }} placeholder="Any notes before the questions…" />
+            <label className="lms-label">Instructions (optional)</label>
+            <RichTextEditor name="instructions" placeholder="Any notes before the questions…" minHeight={70} />
           </div>
 
           <div className="lms-form-row">

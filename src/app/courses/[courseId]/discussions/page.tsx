@@ -3,6 +3,7 @@ import { getPerson, listDiscussionPosts, listDiscussionTopics } from '@/lib/stor
 import { courseCtx } from '../_shared'
 import { Avatar, EmptyState, fmtRelative } from '../../../_components/ui'
 import { createTopicAction } from './actions'
+import { RichTextEditor } from '../../../_components/RichTextEditor'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +19,7 @@ export default async function DiscussionsPage({ params }: { params: Promise<{ co
         <summary style={{ cursor: 'pointer', fontWeight: 600 }}>+ New discussion</summary>
         <form action={createTopicAction.bind(null, course.id, viewer.person.id)} className="lms-stack" style={{ marginTop: 12 }}>
           <input name="title" className="lms-input" placeholder="Discussion title" required />
-          <textarea name="body" className="lms-textarea" placeholder="Kick off the conversation…" />
+          <RichTextEditor name="body" placeholder="Kick off the conversation…" minHeight={90} />
           <button type="submit" className="lms-btn lms-btn--primary" style={{ alignSelf: 'flex-start' }}>
             Start discussion
           </button>

@@ -2,6 +2,7 @@ import { getPerson, listAnnouncements } from '@/lib/store'
 import { courseCtx } from '../_shared'
 import { Avatar, EmptyState, RichText, fmtRelative } from '../../../_components/ui'
 import { createAnnouncementAction } from './actions'
+import { RichTextEditor } from '../../../_components/RichTextEditor'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +19,7 @@ export default async function AnnouncementsPage({ params }: { params: Promise<{ 
           <summary style={{ cursor: 'pointer', fontWeight: 600 }}>+ New announcement</summary>
           <form action={createAnnouncementAction.bind(null, course.id, viewer.person.id)} className="lms-stack" style={{ marginTop: 12 }}>
             <input name="title" className="lms-input" placeholder="Title" required />
-            <textarea name="body" className="lms-textarea" placeholder="Message to the class…" />
+            <RichTextEditor name="body" placeholder="Message to the class…" minHeight={90} />
             <button type="submit" className="lms-btn lms-btn--primary" style={{ alignSelf: 'flex-start' }}>
               Post
             </button>

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { listRubrics } from '@/lib/store'
 import { courseCtx } from '../../_shared'
 import { createAssignmentAction } from '../actions'
+import { RichTextEditor } from '../../../../_components/RichTextEditor'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,15 +29,8 @@ export default async function NewAssignmentPage({ params }: { params: Promise<{ 
         </div>
 
         <div className="lms-field">
-          <label className="lms-label" htmlFor="instructions">
-            Instructions
-          </label>
-          <textarea
-            id="instructions"
-            name="instructions"
-            className="lms-textarea"
-            placeholder="Describe the task. Basic HTML is allowed."
-          />
+          <label className="lms-label">Instructions</label>
+          <RichTextEditor name="instructions" placeholder="Describe the task…" />
         </div>
 
         <div className="lms-form-row">
