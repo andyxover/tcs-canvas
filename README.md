@@ -19,7 +19,7 @@ in-memory functions for a real backend and the UI is unchanged).
 ```bash
 npm install
 npm run dev
-# open http://localhost:3000
+# open http://localhost:3002
 ```
 
 Use the **top-right menu** to view the whole app as any teacher or student.
