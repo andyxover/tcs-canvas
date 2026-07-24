@@ -19,6 +19,7 @@ import {
   submitQuiz,
   turnInSubmission,
   updateAssignment,
+  updateQuiz,
 } from '@/lib/store'
 import type { QuizQuestion, RubricScore } from '@/lib/types'
 
@@ -50,7 +51,7 @@ export async function createAssignmentAction(courseId: string, fd: FormData): Pr
   redirect(`/courses/${courseId}/assignments/${created.id}`)
 }
 
-export async function createQuizAction(courseId: string, fd: FormData): Promise<void> {
+function parseQuizQuestions(fd: FormData): QuizQuestion[] {
   const qCount = Math.max(0, Number(str(fd, 'qCount')) || 0)
   const questions: QuizQuestion[] = []
   for (let i = 0; i < qCount; i++) {
@@ -72,7 +73,11 @@ export async function createQuizAction(courseId: string, fd: FormData): Promise<
     const correctIndex = Math.min(options.length - 1, Math.max(0, Number(str(fd, `q-${i}-correct`)) || 0))
     questions.push({ id: `q${i}`, prompt, kind, options, correctIndex })
   }
+  return questions
+}
 
+export async function createQuizAction(courseId: string, fd: FormData): Promise<void> {
+  const questions = parseQuizQuestions(fd)
   const points = Math.max(0, Math.min(1000, Number(str(fd, 'points')) || questions.length))
   const created = createQuizAssignment({
     courseId,
@@ -86,6 +91,22 @@ export async function createQuizAction(courseId: string, fd: FormData): Promise<
   })
   revalidatePath(`/courses/${courseId}/assignments`, 'page')
   redirect(`/courses/${courseId}/assignments/${created.id}`)
+}
+
+export async function updateQuizAction(courseId: string, assignmentId: string, fd: FormData): Promise<void> {
+  const questions = parseQuizQuestions(fd)
+  const points = Math.max(0, Math.min(1000, Number(str(fd, 'points')) || questions.length))
+  updateQuiz(assignmentId, {
+    title: str(fd, 'title') || 'Untitled quiz',
+    instructions: str(fd, 'instructions'),
+    points,
+    category: str(fd, 'category') || 'Quizzes',
+    dueAt: toIso(str(fd, 'dueAt')),
+    published: fd.get('published') === 'on',
+    questions,
+  })
+  revalidatePath(`/courses/${courseId}/assignments/${assignmentId}`, 'page')
+  redirect(`/courses/${courseId}/assignments/${assignmentId}`)
 }
 
 export async function updateAssignmentAction(courseId: string, assignmentId: string, fd: FormData): Promise<void> {

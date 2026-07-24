@@ -57,7 +57,7 @@ export default async function AssignmentDetailPage({
                 Grade submissions
               </Link>
             )}
-            <Link href={`/courses/${course.id}/assignments/${assignment.id}/edit`} className="lms-btn lms-btn--sm">
+            <Link href={`/courses/${course.id}/assignments/${assignment.id}/${isQuiz ? 'edit-quiz' : 'edit'}`} className="lms-btn lms-btn--sm">
               Edit
             </Link>
             <details className="lms-inline-delete">

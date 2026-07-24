@@ -230,6 +230,32 @@ export function updateAssignment(id: string, patch: Partial<AssignmentInput>): v
   Object.assign(a, patch)
 }
 
+/** Update a quiz's meta and replace its questions. */
+export function updateQuiz(
+  assignmentId: string,
+  input: {
+    title: string
+    instructions: string
+    points: number
+    category: string
+    dueAt: string | null
+    published: boolean
+    questions: QuizQuestion[]
+  },
+): void {
+  updateAssignment(assignmentId, {
+    title: input.title,
+    instructions: input.instructions,
+    points: input.points,
+    category: input.category,
+    dueAt: input.dueAt,
+    published: input.published,
+  })
+  const quiz = data().quizzes.find((q) => q.assignmentId === assignmentId)
+  if (quiz) quiz.questions = input.questions
+  else data().quizzes.push({ assignmentId, questions: input.questions })
+}
+
 /** Delete an assignment and everything hanging off it (submissions, quiz,
  *  and any module items that referenced it). */
 export function deleteAssignment(id: string): void {

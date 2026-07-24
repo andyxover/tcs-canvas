@@ -16,11 +16,14 @@ function blankMc(): Q {
 
 /**
  * Renders the quiz questions as real, named form fields so the parent form's
- * server action (createQuizAction) can parse them from FormData. State is local
- * and controlled; the field names encode the question/option indices.
+ * server action (create/updateQuizAction) can parse them from FormData. State
+ * is local and controlled; the field names encode the question/option indices.
+ * Pass defaultQuestions to edit an existing quiz.
  */
-export function QuizBuilder() {
-  const [questions, setQuestions] = useState<Q[]>([blankMc()])
+export function QuizBuilder({ defaultQuestions }: { defaultQuestions?: Q[] }) {
+  const [questions, setQuestions] = useState<Q[]>(
+    defaultQuestions && defaultQuestions.length > 0 ? defaultQuestions : [blankMc()],
+  )
 
   const update = (qi: number, patch: Partial<Q>) =>
     setQuestions((qs) => qs.map((q, i) => (i === qi ? { ...q, ...patch } : q)))
