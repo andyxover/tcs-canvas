@@ -14,8 +14,15 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const viewer = await getViewer()
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
+        {/* Apply the saved theme before paint so there's no flash of light mode. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{if(localStorage.getItem('tcs-canvas-theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();",
+          }}
+        />
         <div className="lms">
           <TopBar viewer={viewer} teachers={listTeachers()} students={listStudents()} />
           {children}

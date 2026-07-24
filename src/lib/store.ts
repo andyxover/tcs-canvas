@@ -199,6 +199,51 @@ export function teacherGradingQueue(teacherId: string): { entries: GradingQueueE
   return { entries, total: entries.reduce((n, e) => n + e.toGrade, 0) }
 }
 
+export interface SearchResults {
+  courses: { id: string; name: string; code: string; color: string }[]
+  assignments: { id: string; courseId: string; courseName: string; title: string; isQuiz: boolean }[]
+  people: { id: string; name: string; role: 'Teacher' | 'Student'; courseName: string }[]
+}
+
+/** Search courses, assignments, and people within the viewer's own courses. */
+export function search(query: string, viewerKind: 'teacher' | 'student', viewerId: string): SearchResults {
+  const q = query.trim().toLowerCase()
+  const empty: SearchResults = { courses: [], assignments: [], people: [] }
+  if (!q) return empty
+  const courses = viewerKind === 'teacher' ? listCoursesForTeacher(viewerId) : listCoursesForStudent(viewerId)
+  const courseIds = new Set(courses.map((c) => c.id))
+
+  const courseHits = courses
+    .filter((c) => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q))
+    .map((c) => ({ id: c.id, name: c.name, code: c.code, color: c.color }))
+
+  const assignmentHits = data()
+    .assignments.filter((a) => courseIds.has(a.courseId) && (viewerKind === 'teacher' || a.published) && a.title.toLowerCase().includes(q))
+    .map((a) => {
+      const c = getCourse(a.courseId)
+      return { id: a.id, courseId: a.courseId, courseName: c?.name ?? '', title: a.title, isQuiz: a.submissionType === 'quiz' }
+    })
+
+  // People: teachers of + students in the viewer's courses.
+  const seen = new Set<string>()
+  const people: SearchResults['people'] = []
+  for (const c of courses) {
+    const teacher = getPerson(c.teacherId)
+    if (teacher && teacher.name.toLowerCase().includes(q) && !seen.has(`t${teacher.id}`)) {
+      seen.add(`t${teacher.id}`)
+      people.push({ id: teacher.id, name: teacher.name, role: 'Teacher', courseName: c.name })
+    }
+    for (const s of listRoster(c.id)) {
+      if (s.name.toLowerCase().includes(q) && !seen.has(`s${s.id}-${c.id}`)) {
+        seen.add(`s${s.id}-${c.id}`)
+        people.push({ id: s.id, name: s.name, role: 'Student', courseName: c.name })
+      }
+    }
+  }
+
+  return { courses: courseHits, assignments: assignmentHits, people }
+}
+
 export interface AssignmentInput {
   courseId: string
   title: string

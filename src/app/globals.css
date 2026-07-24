@@ -880,3 +880,76 @@ body { background: #f4f5f7; }
   .lms-content { padding: 20px 18px 60px; }
   .lms-form-row { grid-template-columns: 1fr; }
 }
+
+/* ---- Dark theme ------------------------------------------------------ */
+/* Every colour is a CSS var on .lms, so dark mode is just a token swap. */
+:root[data-theme='dark'] body { background: #0e131c; }
+:root[data-theme='dark'] .lms {
+  --lms-bg: #0e131c;
+  --lms-surface: #161d29;
+  --lms-ink: #e7eaf0;
+  --lms-ink-soft: #9aa6b6;
+  --lms-ink-faint: #66717f;
+  --lms-line: #232c3a;
+  --lms-line-strong: #33404f;
+  --lms-accent: #5b7cff;
+  --lms-accent-ink: #aec2ff;
+
+  --lms-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --lms-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+
+  --lms-ok: #4cc38a; --lms-ok-bg: #10281e;
+  --lms-warn: #e0a544; --lms-warn-bg: #2b2313;
+  --lms-danger: #f0788c; --lms-danger-bg: #2f1720;
+  --lms-info: #9db4ff; --lms-info-bg: #172038;
+}
+/* Colour <input type=color> swatch and form controls read better on dark. */
+:root[data-theme='dark'] .lms input[type='color'] { background: var(--lms-surface); }
+
+/* ---- Theme toggle button (in the top bar) ---- */
+.lms-theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.lms-theme-toggle:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.3); }
+
+/* ---- Top-bar search ---- */
+.lms-topbar__search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  width: 240px;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.lms-topbar__search:focus-within { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.32); }
+.lms-topbar__search span { font-size: 13px; opacity: 0.8; }
+.lms-topbar__search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  outline: none;
+}
+.lms-topbar__search input::placeholder { color: #9fb0d6; }
+.lms-topbar__search input::-webkit-search-cancel-button { filter: invert(0.6); }
+
+@media (max-width: 760px) {
+  .lms-topbar__search { display: none; }
+}

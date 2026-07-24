@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { setIdentity } from '../actions'
+import { ThemeToggle } from './ThemeToggle'
 import type { IdentityKind, Person } from '@/lib/types'
 
 type Props = {
@@ -14,9 +15,16 @@ type Props = {
 
 export function TopBar({ viewer, teachers, students }: Props) {
   const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
   const router = useRouter()
   const pathname = usePathname()
   const ref = useRef<HTMLDivElement>(null)
+
+  function onSearch(e: React.FormEvent) {
+    e.preventDefault()
+    const q = query.trim()
+    if (q) router.push(`/search?q=${encodeURIComponent(q)}`)
+  }
 
   useEffect(() => {
     if (!open) return
@@ -52,6 +60,19 @@ export function TopBar({ viewer, teachers, students }: Props) {
         </Link>
       </nav>
       <div className="lms-topbar__spacer" />
+
+      <form className="lms-topbar__search" onSubmit={onSearch} role="search">
+        <span aria-hidden>🔍</span>
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search…"
+          aria-label="Search courses, assignments, people"
+        />
+      </form>
+
+      <ThemeToggle />
 
       <div className="lms-switch" ref={ref}>
         <button type="button" className="lms-switch__btn" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open}>
