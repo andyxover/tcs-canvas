@@ -21,9 +21,14 @@ export default async function AssignmentsPage({ params }: { params: Promise<{ co
       <div className="lms-between">
         <h1 className="lms-h1">Assignments</h1>
         {isTeacher && (
-          <Link href={`/courses/${course.id}/assignments/new`} className="lms-btn lms-btn--primary lms-btn--sm">
-            + Assignment
-          </Link>
+          <div className="lms-flex lms-gap-sm">
+            <Link href={`/courses/${course.id}/assignments/new-quiz`} className="lms-btn lms-btn--sm">
+              + Quiz
+            </Link>
+            <Link href={`/courses/${course.id}/assignments/new`} className="lms-btn lms-btn--primary lms-btn--sm">
+              + Assignment
+            </Link>
+          </div>
         )}
       </div>
 

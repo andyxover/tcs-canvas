@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import {
   createAssignment,
+  createQuizAssignment,
   gradeSubmission,
   gradeSubmissionWithRubric,
   getAssignment,
@@ -17,7 +18,7 @@ import {
   submitQuiz,
   turnInSubmission,
 } from '@/lib/store'
-import type { RubricScore } from '@/lib/types'
+import type { QuizQuestion, RubricScore } from '@/lib/types'
 
 function str(fd: FormData, key: string): string {
   const v = fd.get(key)
@@ -42,6 +43,44 @@ export async function createAssignmentAction(courseId: string, fd: FormData): Pr
     dueAt: toIso(str(fd, 'dueAt')),
     published: fd.get('published') === 'on',
     rubricId: str(fd, 'rubricId') || null,
+  })
+  revalidatePath(`/courses/${courseId}/assignments`, 'page')
+  redirect(`/courses/${courseId}/assignments/${created.id}`)
+}
+
+export async function createQuizAction(courseId: string, fd: FormData): Promise<void> {
+  const qCount = Math.max(0, Number(str(fd, 'qCount')) || 0)
+  const questions: QuizQuestion[] = []
+  for (let i = 0; i < qCount; i++) {
+    const prompt = str(fd, `q-${i}-prompt`)
+    if (!prompt) continue
+    const kind = str(fd, `q-${i}-kind`) === 'tf' ? 'tf' : 'mc'
+    let options: string[]
+    if (kind === 'tf') {
+      options = ['True', 'False']
+    } else {
+      const optCount = Math.max(2, Number(str(fd, `q-${i}-optCount`)) || 0)
+      options = []
+      for (let j = 0; j < optCount; j++) {
+        const o = str(fd, `q-${i}-opt-${j}`)
+        if (o) options.push(o)
+      }
+      if (options.length < 2) continue
+    }
+    const correctIndex = Math.min(options.length - 1, Math.max(0, Number(str(fd, `q-${i}-correct`)) || 0))
+    questions.push({ id: `q${i}`, prompt, kind, options, correctIndex })
+  }
+
+  const points = Math.max(0, Math.min(1000, Number(str(fd, 'points')) || questions.length))
+  const created = createQuizAssignment({
+    courseId,
+    title: str(fd, 'title') || 'Untitled quiz',
+    instructions: str(fd, 'instructions'),
+    points,
+    category: str(fd, 'category') || 'Quizzes',
+    dueAt: toIso(str(fd, 'dueAt')),
+    published: fd.get('published') === 'on',
+    questions,
   })
   revalidatePath(`/courses/${courseId}/assignments`, 'page')
   redirect(`/courses/${courseId}/assignments/${created.id}`)

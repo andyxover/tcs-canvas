@@ -20,6 +20,7 @@ import type {
   Page,
   Person,
   Quiz,
+  QuizQuestion,
   Rubric,
   RubricScore,
   Submission,
@@ -177,6 +178,41 @@ export function createAssignment(input: AssignmentInput): Assignment {
   }
   data().assignments.push(assignment)
   // Give every enrolled student an unsubmitted placeholder so rosters line up.
+  for (const s of listRoster(input.courseId)) {
+    data().submissions.push(emptySubmission(assignment.id, s.id))
+  }
+  return assignment
+}
+
+export interface QuizInput {
+  courseId: string
+  title: string
+  instructions: string
+  points: number
+  category: string
+  dueAt: string | null
+  published: boolean
+  questions: QuizQuestion[]
+}
+
+/** Create a quiz: an assignment (submissionType 'quiz') plus its questions. */
+export function createQuizAssignment(input: QuizInput): Assignment {
+  const siblings = listAssignments(input.courseId)
+  const assignment: Assignment = {
+    id: newId('a'),
+    courseId: input.courseId,
+    title: input.title,
+    instructions: input.instructions,
+    points: input.points,
+    category: input.category,
+    dueAt: input.dueAt,
+    published: input.published,
+    submissionType: 'quiz',
+    rubricId: null,
+    position: siblings.length,
+  }
+  data().assignments.push(assignment)
+  data().quizzes.push({ assignmentId: assignment.id, questions: input.questions })
   for (const s of listRoster(input.courseId)) {
     data().submissions.push(emptySubmission(assignment.id, s.id))
   }
