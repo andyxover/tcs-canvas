@@ -421,6 +421,32 @@ export function deleteModuleItem(moduleId: string, itemId: string): void {
   if (mod) mod.items = mod.items.filter((it) => it.id !== itemId)
 }
 
+type Direction = 'up' | 'down'
+
+/** Swap an item with its neighbor and renumber positions 0..n. */
+export function moveModuleItem(moduleId: string, itemId: string, dir: Direction): void {
+  const mod = data().modules.find((m) => m.id === moduleId)
+  if (!mod) return
+  const items = [...mod.items].sort((a, b) => a.position - b.position)
+  const idx = items.findIndex((it) => it.id === itemId)
+  const swap = dir === 'up' ? idx - 1 : idx + 1
+  if (idx < 0 || swap < 0 || swap >= items.length) return
+  ;[items[idx], items[swap]] = [items[swap], items[idx]]
+  items.forEach((it, i) => (it.position = i))
+}
+
+/** Swap a module with its neighbor within its course and renumber. */
+export function moveModule(courseId: string, moduleId: string, dir: Direction): void {
+  const mods = data()
+    .modules.filter((m) => m.courseId === courseId)
+    .sort((a, b) => a.position - b.position)
+  const idx = mods.findIndex((m) => m.id === moduleId)
+  const swap = dir === 'up' ? idx - 1 : idx + 1
+  if (idx < 0 || swap < 0 || swap >= mods.length) return
+  ;[mods[idx], mods[swap]] = [mods[swap], mods[idx]]
+  mods.forEach((m, i) => (m.position = i))
+}
+
 // ---------------------------------------------------------------------------
 // Rubrics
 // ---------------------------------------------------------------------------

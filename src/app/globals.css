@@ -27,6 +27,21 @@ body { background: #f4f5f7; }
   transition: background 100ms ease;
 }
 .lms .lms-modlink:hover { background: var(--lms-bg); }
+.lms .lms-reorder { display: inline-flex; gap: 2px; }
+.lms .lms-reorder__btn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--lms-line-strong);
+  border-radius: 6px;
+  background: var(--lms-surface);
+  color: var(--lms-ink-soft);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 100ms ease;
+}
+.lms .lms-reorder__btn:hover:not(:disabled) { background: var(--lms-bg); color: var(--lms-ink); }
+.lms .lms-reorder__btn:disabled { opacity: 0.35; cursor: default; }
 .lms .lms-inline-delete { position: relative; }
 .lms .lms-delete-confirm {
   position: absolute;

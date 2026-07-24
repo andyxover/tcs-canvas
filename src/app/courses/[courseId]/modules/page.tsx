@@ -3,7 +3,14 @@ import { listAssignments, listModules } from '@/lib/store'
 import type { CourseModule, ModuleItem } from '@/lib/types'
 import { courseCtx } from '../_shared'
 import { Badge, EmptyState, InlineDelete, formatBytes } from '../../../_components/ui'
-import { addModuleItemAction, createModuleAction, deleteModuleAction, deleteModuleItemAction } from './actions'
+import {
+  addModuleItemAction,
+  createModuleAction,
+  deleteModuleAction,
+  deleteModuleItemAction,
+  moveModuleAction,
+  moveModuleItemAction,
+} from './actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,8 +36,16 @@ export default async function ModulesPage({ params }: { params: Promise<{ course
         <EmptyState icon="▤" title="No modules yet" hint="Your teacher hasn't published any modules." />
       )}
 
-      {modules.map((mod) => (
-        <ModuleCard key={mod.id} mod={mod} courseId={course.id} isTeacher={isTeacher} assignmentOptions={assignments} />
+      {modules.map((mod, i) => (
+        <ModuleCard
+          key={mod.id}
+          mod={mod}
+          courseId={course.id}
+          isTeacher={isTeacher}
+          assignmentOptions={assignments}
+          isFirst={i === 0}
+          isLast={i === modules.length - 1}
+        />
       ))}
 
       {isTeacher && (
@@ -48,16 +63,47 @@ export default async function ModulesPage({ params }: { params: Promise<{ course
   )
 }
 
+function ReorderControls({
+  up,
+  down,
+  canUp,
+  canDown,
+}: {
+  up: () => Promise<void>
+  down: () => Promise<void>
+  canUp: boolean
+  canDown: boolean
+}) {
+  return (
+    <div className="lms-reorder">
+      <form action={up}>
+        <button type="submit" className="lms-reorder__btn" disabled={!canUp} aria-label="Move up">
+          ↑
+        </button>
+      </form>
+      <form action={down}>
+        <button type="submit" className="lms-reorder__btn" disabled={!canDown} aria-label="Move down">
+          ↓
+        </button>
+      </form>
+    </div>
+  )
+}
+
 function ModuleCard({
   mod,
   courseId,
   isTeacher,
   assignmentOptions,
+  isFirst,
+  isLast,
 }: {
   mod: CourseModule
   courseId: string
   isTeacher: boolean
   assignmentOptions: { id: string; title: string }[]
+  isFirst: boolean
+  isLast: boolean
 }) {
   return (
     <div className="lms-card">
@@ -67,7 +113,15 @@ function ModuleCard({
           {!mod.published && <Badge tone="muted">Unpublished</Badge>}
         </div>
         {isTeacher && (
-          <InlineDelete action={deleteModuleAction.bind(null, courseId, mod.id)} confirm="Delete this module and its items?" />
+          <div className="lms-flex lms-gap-sm">
+            <ReorderControls
+              up={moveModuleAction.bind(null, courseId, mod.id, 'up')}
+              down={moveModuleAction.bind(null, courseId, mod.id, 'down')}
+              canUp={!isFirst}
+              canDown={!isLast}
+            />
+            <InlineDelete action={deleteModuleAction.bind(null, courseId, mod.id)} confirm="Delete this module and its items?" />
+          </div>
         )}
       </div>
 
@@ -76,11 +130,17 @@ function ModuleCard({
       ) : (
         [...mod.items]
           .sort((a, b) => a.position - b.position)
-          .map((item) => (
+          .map((item, i, arr) => (
             <div key={item.id} className="lms-row" style={{ padding: 0 }}>
               <ModuleItemRow item={item} courseId={courseId} />
               {isTeacher && (
-                <div style={{ paddingRight: 12 }}>
+                <div className="lms-flex lms-gap-sm" style={{ paddingRight: 12 }}>
+                  <ReorderControls
+                    up={moveModuleItemAction.bind(null, courseId, mod.id, item.id, 'up')}
+                    down={moveModuleItemAction.bind(null, courseId, mod.id, item.id, 'down')}
+                    canUp={i > 0}
+                    canDown={i < arr.length - 1}
+                  />
                   <InlineDelete
                     action={deleteModuleItemAction.bind(null, courseId, mod.id, item.id)}
                     confirm="Remove this item?"

@@ -1,7 +1,15 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { addModuleItem, createModule, deleteModule, deleteModuleItem, getAssignment } from '@/lib/store'
+import {
+  addModuleItem,
+  createModule,
+  deleteModule,
+  deleteModuleItem,
+  getAssignment,
+  moveModule,
+  moveModuleItem,
+} from '@/lib/store'
 import type { ModuleItemKind } from '@/lib/types'
 
 function str(fd: FormData, key: string): string {
@@ -22,6 +30,16 @@ export async function deleteModuleAction(courseId: string, moduleId: string): Pr
 
 export async function deleteModuleItemAction(courseId: string, moduleId: string, itemId: string): Promise<void> {
   deleteModuleItem(moduleId, itemId)
+  revalidatePath(`/courses/${courseId}/modules`, 'page')
+}
+
+export async function moveModuleAction(courseId: string, moduleId: string, dir: 'up' | 'down'): Promise<void> {
+  moveModule(courseId, moduleId, dir)
+  revalidatePath(`/courses/${courseId}/modules`, 'page')
+}
+
+export async function moveModuleItemAction(courseId: string, moduleId: string, itemId: string, dir: 'up' | 'down'): Promise<void> {
+  moveModuleItem(moduleId, itemId, dir)
   revalidatePath(`/courses/${courseId}/modules`, 'page')
 }
 
