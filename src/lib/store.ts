@@ -163,6 +163,42 @@ export function agendaForCourses(courseIds: string[], daysAhead = 21): AgendaEnt
   return out.sort((a, b) => a.dueAt.localeCompare(b.dueAt))
 }
 
+/** How many published, past-due assignments a student hasn't turned in. */
+export function studentMissingCount(studentId: string): number {
+  const courseIds = new Set(
+    data()
+      .enrollments.filter((e) => e.studentId === studentId)
+      .map((e) => e.courseId),
+  )
+  const now = Date.now()
+  let n = 0
+  for (const a of data().assignments) {
+    if (!courseIds.has(a.courseId) || !a.published || a.dueAt == null) continue
+    if (new Date(a.dueAt).getTime() >= now) continue
+    const sub = data().submissions.find((s) => s.assignmentId === a.id && s.studentId === studentId)
+    if (!sub || sub.state === 'unsubmitted') n += 1
+  }
+  return n
+}
+
+export interface GradingQueueEntry {
+  courseId: string
+  courseName: string
+  courseColor: string
+  toGrade: number
+}
+
+/** Per-course count of submissions awaiting grading, for a teacher's courses. */
+export function teacherGradingQueue(teacherId: string): { entries: GradingQueueEntry[]; total: number } {
+  const entries: GradingQueueEntry[] = listCoursesForTeacher(teacherId).map((c) => {
+    const toGrade = data()
+      .assignments.filter((a) => a.courseId === c.id && a.published)
+      .reduce((n, a) => n + listSubmissionsForAssignment(a.id).filter((s) => s.state === 'submitted').length, 0)
+    return { courseId: c.id, courseName: c.name, courseColor: c.color, toGrade }
+  })
+  return { entries, total: entries.reduce((n, e) => n + e.toGrade, 0) }
+}
+
 export interface AssignmentInput {
   courseId: string
   title: string

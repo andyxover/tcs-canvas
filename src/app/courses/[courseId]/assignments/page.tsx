@@ -18,7 +18,7 @@ export default async function AssignmentsPage({ params }: { params: Promise<{ co
 
   return (
     <div className="lms-stack">
-      <div className="lms-between">
+      <div className="lms-between lms-wrap">
         <h1 className="lms-h1">Assignments</h1>
         {isTeacher && (
           <div className="lms-flex lms-gap-sm">
