@@ -16,6 +16,8 @@ import type {
   DiscussionPost,
   DiscussionTopic,
   DraftCoachRequest,
+  Guardianship,
+  IdentityKind,
   PracticeFlag,
   WritingEvent,
   WritingHistory,
@@ -55,6 +57,34 @@ export async function listTeachers(): Promise<Person[]> {
   return d.teachers
 }
 
+export async function listGuardians(): Promise<Person[]> {
+  const d = await data()
+  return d.guardians
+}
+
+/**
+ * The children this guardian may see. The single source of truth for guardian
+ * access — every guardian-facing read goes through it or through wardOf below.
+ */
+export async function wardsOf(
+  guardianId: string,
+): Promise<{ student: Person; relation: string; language: string }[]> {
+  const d = await data()
+  return d.guardianships
+    .filter((g) => g.guardianId === guardianId)
+    .map((g) => {
+      const student = d.students.find((s) => s.id === g.studentId)
+      return student ? { student, relation: g.relation, language: g.language } : null
+    })
+    .filter((x): x is { student: Person; relation: string; language: string } => x !== null)
+}
+
+/** Is this specific child this guardian's? Returns the link, or undefined. */
+export async function wardOf(guardianId: string, studentId: string): Promise<Guardianship | undefined> {
+  const d = await data()
+  return d.guardianships.find((g) => g.guardianId === guardianId && g.studentId === studentId)
+}
+
 export async function listStudents(): Promise<Person[]> {
   const d = await data()
   return d.students
@@ -62,7 +92,11 @@ export async function listStudents(): Promise<Person[]> {
 
 export async function getPerson(id: string): Promise<Person | undefined> {
   const d = await data()
-  return d.teachers.find((t) => t.id === id) ?? d.students.find((s) => s.id === id)
+  return (
+    d.teachers.find((t) => t.id === id) ??
+    d.students.find((s) => s.id === id) ??
+    d.guardians.find((g) => g.id === id)
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -250,7 +284,11 @@ export interface SearchResults {
 }
 
 /** Search courses, assignments, and people within the viewer's own courses. */
-export async function search(query: string, viewerKind: 'teacher' | 'student', viewerId: string): Promise<SearchResults> {
+export async function search(query: string, viewerKind: IdentityKind, viewerId: string): Promise<SearchResults> {
+  // Guardians have no business searching the school. Their surface is their own
+  // children, reached through guardianships; a global search would be a way
+  // around that, so it returns nothing rather than being merely hidden in the UI.
+  if (viewerKind === 'guardian') return { courses: [], assignments: [], people: [] }
   const d = await data()
   const q = query.trim().toLowerCase()
   const empty: SearchResults = { courses: [], assignments: [], people: [] }

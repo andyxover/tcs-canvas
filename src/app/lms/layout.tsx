@@ -1,5 +1,5 @@
 import { getViewer } from '@/lib/session'
-import { listStudents, listTeachers } from '@/lib/store'
+import { listGuardians, listStudents, listTeachers } from '@/lib/store'
 import { TopBar } from '../_components/TopBar'
 
 /**
@@ -19,7 +19,17 @@ export default async function LmsLayout({ children }: { children: React.ReactNod
   const viewer = await getViewer()
   return (
     <div className="lms">
-      <TopBar viewer={viewer} teachers={await listTeachers()} students={await listStudents()} />
+      {/* The switcher receives every teacher, student and guardian because
+          "view as anyone" is what makes this a sandbox. It is also the one thing
+          here with no place in production: behind real auth there is no
+          switcher, and no page should ship a roster to a client that cannot act
+          on it. */}
+      <TopBar
+        viewer={viewer}
+        teachers={await listTeachers()}
+        students={await listStudents()}
+        guardians={await listGuardians()}
+      />
       {children}
     </div>
   )

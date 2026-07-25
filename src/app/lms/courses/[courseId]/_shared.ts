@@ -15,5 +15,10 @@ export async function courseCtx(params: Promise<{ courseId: string }>): Promise<
   const course = await getCourse(courseId)
   if (!course) notFound()
   const viewer = await getViewer()
+  // Guardians have exactly one surface, /lms/family. Course pages carry other
+  // families' children — the roster, the gradebook, discussion threads — so the
+  // lockout is here at the shared entry point rather than repeated per page,
+  // where one omission would be a leak.
+  if (viewer.kind === 'guardian') notFound()
   return { course, viewer, isTeacher: viewer.kind === 'teacher' }
 }

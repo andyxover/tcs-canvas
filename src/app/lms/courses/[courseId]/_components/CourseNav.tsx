@@ -25,6 +25,7 @@ const ITEMS = [
   { seg: 'discussions', label: 'Discussions', icon: '💬', audience: 'all' },
   { seg: 'people', label: 'People', icon: '☺', audience: 'all' },
   { seg: 'syllabus', label: 'Syllabus', icon: '❋', audience: 'all' },
+  { seg: 'families', label: 'Families', icon: '⌂', audience: 'teacher' },
   { seg: 'reports', label: 'Reports', icon: '✍', audience: 'teacher' },
   { seg: 'settings', label: 'Settings', icon: '⚙', audience: 'teacher' },
 ] as const

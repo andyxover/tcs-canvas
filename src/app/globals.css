@@ -1507,3 +1507,21 @@ html {
   font-size: 13.5px;
   line-height: 1.7;
 }
+
+/* Family digest lists.
+   Roomier line-height than the rest of the app: this is read by a parent on a
+   phone, often in their second language, not scanned by a teacher who already
+   knows what it says. */
+.lms .lms-digest__list {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+.lms .lms-digest__list li {
+  font-size: 13.5px;
+  line-height: 1.7;
+  padding-left: 12px;
+  border-left: 2px solid var(--lms-line-strong);
+}

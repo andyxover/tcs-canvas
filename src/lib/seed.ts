@@ -12,6 +12,7 @@ import type {
   DiscussionPost,
   DiscussionTopic,
   Enrollment,
+  Guardianship,
   LmsData,
   Page,
   Person,
@@ -40,6 +41,23 @@ function hash01(seed: string): number {
 const teachers: Person[] = [
   { id: 't-rivera', name: 'Ms. Rivera', email: 'rivera@sandbox.tcs', color: '#0f766e' },
   { id: 't-tan', name: 'Mr. Tan', email: 'tan@sandbox.tcs', color: '#7c3aed' },
+]
+
+// Deliberately more than one child per guardian and more than one guardian per
+// child, so the isolation tests exercise the real shape rather than a 1:1 map.
+const guardians: Person[] = [
+  { id: 'g-chen', name: 'Chen Wei-Ling', email: 'chen.family@sandbox.tcs', color: '#0f766e' },
+  { id: 'g-novak', name: 'Marta Novak', email: 'novak.family@sandbox.tcs', color: '#7c3aed' },
+  { id: 'g-wong', name: 'Wong Jia-Hao', email: 'wong.family@sandbox.tcs', color: '#b45309' },
+]
+
+const guardianships: Guardianship[] = [
+  { guardianId: 'g-chen', studentId: 's-ava', relation: 'Mother', language: 'zh-TW' },
+  { guardianId: 'g-novak', studentId: 's-ben', relation: 'Mother', language: 'en' },
+  // Two children at the school, and one of them shares a guardian with nobody
+  // else — the case a naive "first match" lookup gets wrong.
+  { guardianId: 'g-wong', studentId: 's-emma', relation: 'Father', language: 'zh-TW' },
+  { guardianId: 'g-wong', studentId: 's-frank', relation: 'Guardian', language: 'zh-TW' },
 ]
 
 const students: Person[] = [
@@ -420,6 +438,8 @@ export function buildSeed(): LmsData {
   return {
     teachers,
     students,
+    guardians,
+    guardianships,
     courses,
     enrollments,
     modules,

@@ -12,9 +12,10 @@ type Props = {
   viewer: { kind: IdentityKind; person: Person }
   teachers: Person[]
   students: Person[]
+  guardians: Person[]
 }
 
-export function TopBar({ viewer, teachers, students }: Props) {
+export function TopBar({ viewer, teachers, students, guardians }: Props) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const router = useRouter()
@@ -45,13 +46,16 @@ export function TopBar({ viewer, teachers, students }: Props) {
    * frame as the click; if the action fails React reverts it for us.
    */
   function choose(kind: IdentityKind, id: string) {
-    const next = (kind === 'teacher' ? teachers : students).find((p) => p.id === id)
+    const pool = kind === 'teacher' ? teachers : kind === 'guardian' ? guardians : students
+    const next = pool.find((p) => p.id === id)
     if (!next) return
     setOpen(false)
     startSwitching(async () => {
       setPendingViewer({ kind, person: next })
       await setIdentity(kind, id)
-      router.push('/lms')
+      // Guardians have no course list; sending them to /lms would land them on
+      // a page that is not theirs.
+      router.push(kind === 'guardian' ? '/lms/family' : '/lms')
       router.refresh()
     })
   }
@@ -66,16 +70,24 @@ export function TopBar({ viewer, teachers, students }: Props) {
       </Link>
       <span className="lms-topbar__lab">Sandbox</span>
       <nav className="lms-topbar__nav">
-        <HoverLink href="/lms" className="lms-topbar__link" data-active={pathname === '/lms'}>
-          Courses
-        </HoverLink>
-        <HoverLink href="/lms/agenda" className="lms-topbar__link" data-active={pathname === '/lms/agenda'}>
-          Agenda
-        </HoverLink>
-        {shownViewer.kind === 'teacher' && (
-          <HoverLink href="/lms/standards" className="lms-topbar__link" data-active={pathname === '/lms/standards'}>
-            Standards
+        {shownViewer.kind === 'guardian' ? (
+          <HoverLink href="/lms/family" className="lms-topbar__link" data-active={pathname === '/lms/family'}>
+            My children
           </HoverLink>
+        ) : (
+          <>
+            <HoverLink href="/lms" className="lms-topbar__link" data-active={pathname === '/lms'}>
+              Courses
+            </HoverLink>
+            <HoverLink href="/lms/agenda" className="lms-topbar__link" data-active={pathname === '/lms/agenda'}>
+              Agenda
+            </HoverLink>
+            {shownViewer.kind === 'teacher' && (
+              <HoverLink href="/lms/standards" className="lms-topbar__link" data-active={pathname === '/lms/standards'}>
+                Standards
+              </HoverLink>
+            )}
+          </>
         )}
       </nav>
       <div className="lms-topbar__spacer" />
@@ -126,6 +138,21 @@ export function TopBar({ viewer, teachers, students }: Props) {
                   {initials(t.name)}
                 </span>
                 {t.name}
+              </button>
+            ))}
+            <div className="lms-switch__group">Guardians</div>
+            {guardians.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                className="lms-switch__item"
+                data-active={shownViewer.kind === 'guardian' && shownViewer.person.id === g.id}
+                onClick={() => choose('guardian', g.id)}
+              >
+                <span className="lms-avatar" style={{ width: 26, height: 26, background: g.color, fontSize: 11 }} aria-hidden>
+                  {initials(g.name)}
+                </span>
+                {g.name}
               </button>
             ))}
             <div className="lms-switch__group">Students</div>

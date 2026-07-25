@@ -4,7 +4,7 @@
 // these shapes map onto real `lms_*` tables (see the plan file), but for now
 // they live entirely in memory.
 
-export type IdentityKind = 'teacher' | 'student'
+export type IdentityKind = 'teacher' | 'student' | 'guardian'
 
 export interface Identity {
   kind: IdentityKind
@@ -323,9 +323,29 @@ export interface WritingHistory {
   events: WritingEvent[]
 }
 
+/**
+ * Who may see a given child.
+ *
+ * Kept as an explicit link table rather than a field on the student, because a
+ * child routinely has two guardians and a guardian routinely has more than one
+ * child at the school. Every guardian-facing read resolves through this and
+ * nothing else — it is the only thing standing between one family and another's
+ * evidence.
+ */
+export interface Guardianship {
+  guardianId: string
+  studentId: string
+  /** Shown to the teacher so they know who they are writing for. */
+  relation: string
+  /** The language this guardian reads. Digests are written in it. */
+  language: string
+}
+
 export interface LmsData {
   teachers: Person[]
   students: Person[]
+  guardians: Person[]
+  guardianships: Guardianship[]
   courses: Course[]
   enrollments: Enrollment[]
   modules: CourseModule[]

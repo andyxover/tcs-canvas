@@ -16,7 +16,7 @@ export interface Viewer {
 function parse(raw: string | undefined): Identity | null {
   if (!raw) return null
   const [kind, id] = raw.split(':')
-  if ((kind !== 'teacher' && kind !== 'student') || !id) return null
+  if ((kind !== 'teacher' && kind !== 'student' && kind !== 'guardian') || !id) return null
   return { kind, id }
 }
 
