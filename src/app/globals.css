@@ -1,6 +1,22 @@
 /* Root reset — this stylesheet is the whole app, so own the document box. */
 html, body { margin: 0; padding: 0; }
-body { background: #f4f5f7; }
+/* Matches --lms-bg. Set here too so the overscroll area past the document edge
+   isn't a different colour from the page. */
+body { background: #f6f5f2; }
+:root[data-theme='dark'] body { background: #101420; }
+
+/* Reserve the scrollbar gutter permanently.
+   Page heights vary a lot by tab (People fits in a viewport; Standards is ~2x
+   it), so the vertical scrollbar was appearing and disappearing as you moved
+   between them. Both .lms-shell and .lms-page are `margin: 0 auto`, so losing
+   the scrollbar's width to the viewport shifted the whole layout sideways by
+   half of it — the course rail visibly sliding left on the Standards tab. */
+html {
+  scrollbar-gutter: stable;
+}
+@supports not (scrollbar-gutter: stable) {
+  html { overflow-y: scroll; }
+}
 
 /* ---- Destructive actions + inline delete confirm ---- */
 .lms .lms-btn--danger {
@@ -120,36 +136,54 @@ body { background: #f4f5f7; }
    a per-course left nav, a calm content column with clear hierarchy. */
 
 .lms {
-  --lms-bg: #f4f5f7;
-  --lms-surface: #ffffff;
-  --lms-ink: #14181f;
-  --lms-ink-soft: #5b6673;
-  --lms-ink-faint: #93a0af;
-  --lms-line: #e3e7ec;
-  --lms-line-strong: #cfd6de;
+  /* Neutrals are warm on purpose. The palette used to be #f4f5f7 on #ffffff —
+     a cool grey that reads as "unstyled default" no matter what sits on it.
+     Shifting the paper warm and the ink toward navy gives the whole surface a
+     temperature, which is most of what separates a designed product from a
+     wireframe. */
+  --lms-bg: #f6f5f2;
+  --lms-surface: #fffefc;
+  --lms-ink: #161b26;
+  --lms-ink-soft: #5a6474;
+  --lms-ink-faint: #929aa8;
+  --lms-line: #e6e3dc;
+  --lms-line-strong: #d2cec5;
   --lms-accent: #2b5cff;
   --lms-accent-ink: #1e40af;
+
   --lms-radius: 12px;
   --lms-radius-sm: 8px;
-  --lms-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px -12px rgba(16, 24, 40, 0.18);
-  --lms-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.08);
+  --lms-radius-lg: 18px;
+
+  /* Two-layer shadows: a tight contact shadow to seat the element, plus a wide
+     soft one for lift. A single blurred box-shadow always reads as a smudge. */
+  --lms-shadow: 0 1px 2px rgba(22, 27, 38, 0.05), 0 12px 28px -14px rgba(22, 27, 38, 0.22);
+  --lms-shadow-sm: 0 1px 2px rgba(22, 27, 38, 0.07);
+  --lms-shadow-lg: 0 2px 4px rgba(22, 27, 38, 0.06), 0 24px 48px -20px rgba(22, 27, 38, 0.3);
 
   --lms-ok: #0f7a4d;
-  --lms-ok-bg: #e7f6ee;
+  --lms-ok-bg: #e6f4ec;
   --lms-warn: #b45309;
-  --lms-warn-bg: #fdf3e3;
+  --lms-warn-bg: #fbf1e0;
   --lms-danger: #c0334a;
-  --lms-danger-bg: #fdecef;
+  --lms-danger-bg: #fbeaed;
   --lms-info: #1e40af;
-  --lms-info-bg: #e7edff;
+  --lms-info-bg: #e8ecfd;
+
+  /* Fluid type scale. Titles carry the contrast; body text stays fixed so
+     tables and forms don't reflow with the viewport. */
+  --lms-text-display: clamp(1.75rem, 1.35rem + 1.6vw, 2.6rem);
+  --lms-text-h1: clamp(1.45rem, 1.2rem + 1vw, 2rem);
+  --lms-text-h2: 1.0625rem;
 
   min-height: 100dvh;
   background: var(--lms-bg);
   color: var(--lms-ink);
-  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--lms-font-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .lms *,
@@ -163,11 +197,6 @@ body { background: #f4f5f7; }
   text-decoration: none;
 }
 
-.lms :focus-visible {
-  outline: 2px solid var(--lms-accent);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
 
 /* ---- Top bar --------------------------------------------------------- */
 
@@ -182,6 +211,7 @@ body { background: #f4f5f7; }
   padding: 0 20px;
   background: #0d1b3e;
   color: #fff;
+  border-bottom: var(--lms-topbar-border, 1px solid transparent);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -285,7 +315,13 @@ body { background: #f4f5f7; }
   border-color: rgba(255, 255, 255, 0.3);
 }
 
+/* Was two inline <span>s with no stacking, so the name and role ran together as
+   "Ms. RiveraVIEWING AS TEACHER". */
 .lms-switch__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
   text-align: left;
   line-height: 1.15;
 }
@@ -431,16 +467,59 @@ body { background: #f4f5f7; }
 
 /* ---- Typography & headers ------------------------------------------- */
 
+/* Titles are set in the serif at a real display size. The old h1 was 24px/700
+   in the same face as the body text, which meant the only thing separating a
+   page title from a table header was a few pixels — no hierarchy, just weight.
+   Serif + scale + optical sizing does the work instead. */
 .lms-h1 {
-  font-size: 24px;
+  font-family: var(--lms-font-display), Georgia, 'Times New Roman', serif;
+  font-size: var(--lms-text-h1);
+  font-weight: 600;
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
+  line-height: 1.12;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+
+/* The greeting on the dashboard — the one place that earns full display size. */
+.lms-display {
+  font-family: var(--lms-font-display), Georgia, 'Times New Roman', serif;
+  font-size: var(--lms-text-display);
+  font-weight: 600;
+  font-optical-sizing: auto;
+  letter-spacing: -0.022em;
+  line-height: 1.05;
+  margin: 0 0 8px;
+  text-wrap: balance;
+}
+
+/* Eyebrow / kicker. Small, spaced, coloured — orients you before the title
+   without competing with it. */
+.lms-eyebrow {
+  display: block;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--lms-accent-ink);
+  margin-bottom: 8px;
 }
 
 .lms-sub {
   color: var(--lms-ink-soft);
+  font-size: 14.5px;
+  max-width: 62ch;
   margin: 0 0 22px;
+}
+
+/* Anything numeric that sits in a column or updates in place: lock the widths so
+   digits don't jitter as values change. */
+.lms-num,
+.lms-table td,
+.lms-stat__value,
+.lms-row__meta time {
+  font-variant-numeric: tabular-nums;
 }
 
 .lms-header {
@@ -815,7 +894,16 @@ body { background: #f4f5f7; }
   gap: 20px;
   align-items: start;
 }
-.lms-dash__h2 { font-size: 15px; font-weight: 700; margin: 0; }
+/* Section headers read as labels for the block beneath them, not as competing
+   titles — small, spaced, quieter than the page title above. */
+.lms-dash__h2 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--lms-ink-soft);
+  margin: 0;
+}
 .lms-dash__courses { display: grid; gap: 10px; }
 
 .lms-hub-row {
@@ -885,18 +973,26 @@ body { background: #f4f5f7; }
 /* Every colour is a CSS var on .lms, so dark mode is just a token swap. */
 :root[data-theme='dark'] body { background: #0e131c; }
 :root[data-theme='dark'] .lms {
-  --lms-bg: #0e131c;
-  --lms-surface: #161d29;
-  --lms-ink: #e7eaf0;
-  --lms-ink-soft: #9aa6b6;
-  --lms-ink-faint: #66717f;
-  --lms-line: #232c3a;
-  --lms-line-strong: #33404f;
-  --lms-accent: #5b7cff;
-  --lms-accent-ink: #aec2ff;
+  /* Dark keeps the same warm bias, just inverted: the greys lean very slightly
+     blue-violet rather than neutral, so it doesn't read as flat charcoal. */
+  --lms-bg: #101420;
+  --lms-surface: #181d2b;
+  --lms-ink: #e9eaef;
+  --lms-ink-soft: #9ba4b5;
+  --lms-ink-faint: #6a7381;
+  --lms-line: #262d3d;
+  --lms-line-strong: #364052;
+  --lms-accent: #6d8bff;
+  --lms-accent-ink: #b8c8ff;
 
-  --lms-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --lms-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 28px -14px rgba(0, 0, 0, 0.65);
   --lms-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --lms-shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.45), 0 24px 48px -20px rgba(0, 0, 0, 0.75);
+
+  /* In light mode the navy bar separates from warm paper on its own. In dark it
+     lands within a few points of the page colour, so it needs an explicit edge
+     or the whole top of the screen reads as one undifferentiated block. */
+  --lms-topbar-border: 1px solid #26304a;
 
   --lms-ok: #4cc38a; --lms-ok-bg: #10281e;
   --lms-warn: #e0a544; --lms-warn-bg: #2b2313;
@@ -1055,6 +1151,34 @@ body { background: #f4f5f7; }
 }
 .lms .lms-evidence:hover { border-color: var(--lms-line-strong); color: var(--lms-ink); }
 
+/* ---- Interactive surface states ----
+   Hover lifts and warms; :active settles it back down so a click has a physical
+   beat rather than just a colour change. Transform + shadow only, both cheap. */
+.lms .lms-minicard,
+.lms .lms-hub-row,
+.lms .lms-course-card {
+  transition:
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 160ms ease,
+    background 160ms ease;
+}
+.lms .lms-minicard:active,
+.lms .lms-hub-row:active,
+.lms .lms-course-card:active {
+  transform: translateY(0) scale(0.995);
+  box-shadow: var(--lms-shadow-sm);
+}
+
+/* The focus ring is the accent at full strength plus a halo, so keyboard focus
+   is never quieter than hover. */
+.lms :focus-visible {
+  outline: 2px solid var(--lms-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--lms-accent) 18%, transparent);
+}
+
 /* ---- Loading skeletons ----
    Every route ships a loading.tsx built from these. Two jobs: acknowledge the
    click in the same frame, and hold the destination's shape so arriving content
@@ -1142,16 +1266,41 @@ body { background: #f4f5f7; }
 .lms .lms-switch[data-busy] .lms-switch__btn { opacity: 0.72; cursor: progress; }
 
 /* ---- Per-navigation enter animation ----
-   Applied by template.tsx, which remounts on every navigation, so this plays on
-   each route change rather than only on first paint. Transform + opacity only,
-   so it stays on the compositor. */
+   Two scopes, and never the chrome: `.lms-view` is the course content column
+   (courses/[courseId]/template.tsx) and `.lms-page` is a top-level route. The
+   top bar and course rail are outside both, so they hold still while the page
+   body arrives. Transform + opacity only, so it all stays on the compositor.
+
+   The children stagger by a few frames behind their container. That short offset
+   is most of what separates a transition that reads as considered from one that
+   reads as a flicker — the page resolves in a direction rather than all at once.
+   Capped at six children so a long list doesn't trail in visibly. */
 @keyframes lms-view-enter {
-  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
   to { opacity: 1; transform: none; }
 }
-.lms .lms-view { animation: lms-view-enter 240ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+.lms .lms-view,
+.lms .lms-page {
+  animation: lms-view-enter 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lms .lms-view > *,
+.lms .lms-page > * {
+  animation: lms-view-enter 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.lms .lms-view > *:nth-child(1), .lms .lms-page > *:nth-child(1) { animation-delay: 20ms; }
+.lms .lms-view > *:nth-child(2), .lms .lms-page > *:nth-child(2) { animation-delay: 55ms; }
+.lms .lms-view > *:nth-child(3), .lms .lms-page > *:nth-child(3) { animation-delay: 85ms; }
+.lms .lms-view > *:nth-child(4), .lms .lms-page > *:nth-child(4) { animation-delay: 110ms; }
+.lms .lms-view > *:nth-child(n + 5), .lms .lms-page > *:nth-child(n + 5) { animation-delay: 130ms; }
 
 @media (prefers-reduced-motion: reduce) {
-  .lms .lms-skel { animation: none; }
-  .lms .lms-view { animation: none; }
+  .lms .lms-skel,
+  .lms .lms-view,
+  .lms .lms-page,
+  .lms .lms-view > *,
+  .lms .lms-page > * {
+    animation: none;
+  }
 }

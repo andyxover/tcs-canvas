@@ -1,17 +1,6 @@
 import Link from 'next/link'
 import { getViewer } from '@/lib/session'
-import {
-  agendaForCourses,
-  courseGradeForStudent,
-  getAssignment,
-  getPerson,
-  getSubmission,
-  listCoursesForStudent,
-  listCoursesForTeacher,
-  listRoster,
-  studentMissingCount,
-  teacherGradingQueue,
-} from '@/lib/store'
+import { agendaForCourses, courseGradeForStudent, getAssignment, getPerson, getSubmission, listCoursesForStudent, listCoursesForTeacher, listRoster, studentMissingCount, teacherGradingQueue, todayLabel } from '@/lib/store'
 import { isMissing } from '@/lib/grade-calc'
 import type { Course } from '@/lib/types'
 import { Avatar, Badge, EmptyState, fmtDay } from './_components/ui'
@@ -30,7 +19,8 @@ export default async function DashboardPage() {
     <main className="lms-page">
       <div className="lms-header">
         <div>
-          <h1 className="lms-h1">
+          <span className="lms-eyebrow">{todayLabel()}</span>
+          <h1 className="lms-display">
             {isTeacher ? `Good day, ${viewer.person.name}` : `Hi, ${viewer.person.name.split(' ')[0]}`}
           </h1>
           <p className="lms-sub">

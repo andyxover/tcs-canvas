@@ -18,7 +18,7 @@ export default async function CourseSettingsPage({ params }: { params: Promise<{
 
       <form action={action} className="lms-stack">
         <div className="lms-card lms-card--pad">
-          <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 12px' }}>Details</h2>
+          <h2 className="lms-dash__h2" style={{ margin: '0 0 12px' }}>Details</h2>
           <div className="lms-field">
             <label className="lms-label" htmlFor="name">
               Course name
@@ -48,7 +48,7 @@ export default async function CourseSettingsPage({ params }: { params: Promise<{
         </div>
 
         <div className="lms-card lms-card--pad">
-          <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 12px' }}>Grading</h2>
+          <h2 className="lms-dash__h2" style={{ margin: '0 0 12px' }}>Grading</h2>
           <div className="lms-form-row">
             <div className="lms-field">
               <label className="lms-label" htmlFor="calc">

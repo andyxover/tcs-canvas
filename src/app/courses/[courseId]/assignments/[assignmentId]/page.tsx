@@ -86,7 +86,7 @@ export default async function AssignmentDetailPage({
 
       {(assignment.standardIds ?? []).length > 0 && (
         <section>
-          <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 4px' }}>Learning standards</h2>
+          <h2 className="lms-dash__h2" style={{ margin: '0 0 4px' }}>Learning standards</h2>
           <p className="lms-muted" style={{ margin: '0 0 10px', fontSize: 13 }}>
             {isTeacher
               ? 'What this work gives evidence for. Assess proficiency when you grade.'
@@ -101,7 +101,7 @@ export default async function AssignmentDetailPage({
 
       {!isQuiz && rubric && (
         <section>
-          <h2 style={{ fontSize: 15, fontWeight: 700 }}>{rubric.title}</h2>
+          <h2 className="lms-dash__h2">{rubric.title}</h2>
           <div className="lms-stack">
             {rubric.criteria.map((c) => (
               <div key={c.id} className="lms-card lms-card--pad">
@@ -160,7 +160,7 @@ function TeacherSubmissionSummary({ courseId, assignmentId, points }: { courseId
 
   return (
     <section>
-      <h2 style={{ fontSize: 15, fontWeight: 700 }}>Submissions</h2>
+      <h2 className="lms-dash__h2">Submissions</h2>
       <div className="lms-courses">
         {stats.map((s) => (
           <div key={s.label} className="lms-card lms-card--pad">
@@ -185,7 +185,7 @@ function StudentSubmitPanel({ courseId, assignmentId, studentId }: { courseId: s
   return (
     <section>
       <div className="lms-between" style={{ marginBottom: 10 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Your submission</h2>
+        <h2 className="lms-dash__h2" style={{ margin: 0 }}>Your submission</h2>
         {sub.state === 'graded' && (
           <Badge tone="ok">
             Graded · {sub.score}/{assignment.points}
@@ -290,7 +290,7 @@ function QuizTeacherView({ courseId, quiz, points }: { courseId: string; quiz: Q
         </div>
       </div>
 
-      <h2 style={{ fontSize: 15, fontWeight: 700 }}>Answer key</h2>
+      <h2 className="lms-dash__h2">Answer key</h2>
       <div className="lms-stack">
         {quiz.questions.map((q, i) => (
           <div key={q.id} className="lms-card lms-card--pad">
@@ -321,7 +321,7 @@ function QuizStudentView({ courseId, quiz, points, studentId }: { courseId: stri
     return (
       <section className="lms-stack">
         <div className="lms-between">
-          <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Your result</h2>
+          <h2 className="lms-dash__h2" style={{ margin: 0 }}>Your result</h2>
           <Badge tone="ok">
             {sub.score}/{points} · {correct}/{quiz.questions.length} correct
           </Badge>
@@ -361,7 +361,7 @@ function QuizStudentView({ courseId, quiz, points, studentId }: { courseId: stri
   const action = takeQuizAction.bind(null, courseId, quiz.assignmentId, studentId)
   return (
     <section>
-      <h2 style={{ fontSize: 15, fontWeight: 700 }}>Take the quiz</h2>
+      <h2 className="lms-dash__h2">Take the quiz</h2>
       <form action={action} className="lms-stack">
         {quiz.questions.map((q, i) => (
           <fieldset key={q.id} className="lms-card lms-card--pad" style={{ border: '1px solid var(--lms-line)', margin: 0 }}>

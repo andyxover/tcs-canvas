@@ -66,7 +66,7 @@ export default async function CourseHomePage({ params }: { params: Promise<{ cou
 function SectionTitle({ children, href }: { children: React.ReactNode; href?: string }) {
   return (
     <div className="lms-between" style={{ margin: '4px 0 10px' }}>
-      <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>{children}</h2>
+      <h2 className="lms-dash__h2" style={{ margin: 0 }}>{children}</h2>
       {href && (
         <Link href={href} className="lms-btn lms-btn--ghost lms-btn--sm">
           View all →

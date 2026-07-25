@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="TCS Learn">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2b5cff" />
+      <stop offset="1" stop-color="#7c3aed" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#g)" />
+  <!-- The ◧ of the top-bar mark: a square with its left half filled. -->
+  <rect x="8.5" y="8.5" width="15" height="15" rx="2.5" fill="none" stroke="#fff" stroke-width="2" />
+  <path d="M10 11a1 1 0 0 1 1-1h5v12h-5a1 1 0 0 1-1-1z" fill="#fff" />
+</svg>

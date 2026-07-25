@@ -117,6 +117,20 @@ export function getAssignment(id: string): Assignment | undefined {
 
 /** Published assignments still due, soonest first — computed here so callers
  *  (server components) don't reference the clock during render. */
+/**
+ * Today, formatted for the dashboard eyebrow.
+ *
+ * Lives here rather than in the component for the same reason the other clock
+ * reads do: calling `new Date()` during render trips react-hooks/purity.
+ */
+export function todayLabel(): string {
+  return new Date().toLocaleDateString('en-CA', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
+}
+
 export function listUpcomingAssignments(courseId: string, limit: number): Assignment[] {
   const now = Date.now()
   return listAssignments(courseId)

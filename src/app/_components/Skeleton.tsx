@@ -104,12 +104,33 @@ export function SkelProse({ lines = 6 }: { lines?: number }) {
   )
 }
 
-/** The standard page shell every loading.tsx wraps itself in. */
+/**
+ * Shell for top-level routes (/, /agenda, /standards, /search), which render
+ * their own `<main class="lms-page">`.
+ */
 export function SkelPage({ children, sub = true }: { children: React.ReactNode; sub?: boolean }) {
   return (
     <main className="lms-page" aria-busy="true" aria-label="Loading">
       <SkelHeader sub={sub} />
       {children}
     </main>
+  )
+}
+
+/**
+ * Shell for routes inside a course.
+ *
+ * These must NOT use SkelPage. Course pages render `<div class="lms-stack">`
+ * straight into `.lms-content`, which already supplies the padding, whereas
+ * .lms-page adds a max-width and `margin: 0 auto` on top of it. Nesting one in
+ * the other put the skeleton at a different x and width than the content that
+ * replaced it, so every course tab jumped the moment content landed.
+ */
+export function SkelCourse({ children, sub = false }: { children: React.ReactNode; sub?: boolean }) {
+  return (
+    <div className="lms-stack" aria-busy="true" aria-label="Loading">
+      <SkelHeader sub={sub} />
+      {children}
+    </div>
   )
 }

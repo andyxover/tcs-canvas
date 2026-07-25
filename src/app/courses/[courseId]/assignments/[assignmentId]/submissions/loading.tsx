@@ -1,9 +1,9 @@
-import { SkelPage, SkelRows } from '../../../../../_components/Skeleton'
+import { SkelCourse, SkelRows } from '../../../../../_components/Skeleton'
 
 export default function Loading() {
   return (
-    <SkelPage>
+    <SkelCourse>
       <SkelRows n={6} lead />
-    </SkelPage>
+    </SkelCourse>
   )
 }

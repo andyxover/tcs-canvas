@@ -93,7 +93,7 @@ export default async function EditQuizPage({
           <StandardPicker available={standards} defaultSelected={a.standardIds ?? []} />
         </div>
 
-        <h2 style={{ fontSize: 15, fontWeight: 700, margin: '4px 0 0' }}>Questions</h2>
+        <h2 className="lms-dash__h2" style={{ margin: '4px 0 0' }}>Questions</h2>
         <QuizBuilder defaultQuestions={quiz.questions} />
 
         <div className="lms-flex" style={{ marginTop: 4 }}>

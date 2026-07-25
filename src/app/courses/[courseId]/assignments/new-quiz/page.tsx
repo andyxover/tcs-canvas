@@ -79,7 +79,7 @@ export default async function NewQuizPage({ params }: { params: Promise<{ course
           <StandardPicker available={standards} />
         </div>
 
-        <h2 style={{ fontSize: 15, fontWeight: 700, margin: '4px 0 0' }}>Questions</h2>
+        <h2 className="lms-dash__h2" style={{ margin: '4px 0 0' }}>Questions</h2>
         <p className="lms-muted" style={{ margin: 0, fontSize: 13 }}>
           Add multiple-choice or true/false questions. Tick the correct answer for each. The quiz auto-grades on submit.
         </p>
