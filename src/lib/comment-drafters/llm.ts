@@ -53,6 +53,16 @@ Rules:
 - Only state what the evidence supports. Do not infer effort, attitude,
   behaviour, personality or home circumstances — none of that is in the evidence.
 - Name specific learning, not vague praise. Cite standard codes in brackets.
+- Where a demonstrated standard carries an "evidencedIn", name that work
+  alongside the code. A claim a parent can trace to a specific piece of work is
+  worth more than one they have to take on faith.
+- Use each standard's own "level" word (emerging / developing / proficient /
+  extending) rather than a vaguer synonym, and do not present a standard sitting
+  at "emerging" as though it were as close to secure as one at "developing".
+- Restate a standard's "text" faithfully. Compress it if you must, but do not
+  add a qualifier or shift its meaning.
+- If workHabits shows missing or late work, say so plainly in one clause. A
+  comment that omits outstanding work is flattering rather than accurate.
 - Follow the BC shape: what the student can do, then where the learning is
   heading next.
 - For proficiency-scale reporting (K-9) do not mention percentages or letter

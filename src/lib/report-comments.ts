@@ -320,11 +320,15 @@ export const structuredDrafter: CommentDrafter = {
     if (ev.strengths.length > 0) {
       const top = ev.strengths.slice(0, 2)
       top.forEach((s) => cited.push(s.standardId))
-      // "Proficient or above" is accurate by construction — that is exactly the
-      // set `strengths` holds. Naming the single highest level here instead would
-      // claim every counted standard reached it.
+      // Naming a single level is only honest when every counted standard reached
+      // it; otherwise "Proficient or above" is accurate by construction, since
+      // that is exactly the set `strengths` holds. Checking first means a student
+      // sitting at Extending across the board is not reported at the floor.
+      const shared = ev.strengths.every((s) => s.level === ev.strengths[0].level)
+        ? levelWord(ev.strengths[0].level)
+        : 'Proficient or above'
       parts.push(
-        `In ${ev.course.name}, ${firstName} is working at Proficient or above on ` +
+        `In ${ev.course.name}, ${firstName} is working at ${shared} on ` +
           `${ev.strengths.length} of the ${assessed} learning standards assessed this term.`,
       )
       parts.push(`${firstName} ${joinList(top.map((s) => demonstrated(s) + citing(s)))}.`)
@@ -347,11 +351,19 @@ export const structuredDrafter: CommentDrafter = {
 
     // 3. Where the next teaching goes.
     if (ev.growing.length > 0) {
+      // `growing` is sorted furthest-behind first, so the named ones are the
+      // most urgent. Capping keeps the sentence readable — but the remainder is
+      // stated rather than dropped, because a comment that silently names two of
+      // five growth areas reads as though there were only two.
       const focus = ev.growing.slice(0, 2)
+      const rest = ev.growing.length - focus.length
       focus.forEach((s) => cited.push(s.standardId))
       // Code only, no source: naming where it was last assessed reads as though
       // that is where the next step happens.
-      parts.push(`Next steps: ${joinList(focus.map((s) => `${nextStep(s)} (${s.code})`))}.`)
+      parts.push(
+        `Next steps: ${joinList(focus.map((s) => `${nextStep(s)} (${s.code})`))}` +
+          `${rest > 0 ? `, with ${rest} further standard${rest === 1 ? '' : 's'} still developing` : ''}.`,
+      )
     }
 
     // 4. Work habits, only when there is something worth saying.
