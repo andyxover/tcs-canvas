@@ -235,6 +235,9 @@ function buildAssignments(): Assignment[] {
       // Only on the two labs — work substantial enough that how it was written
       // is a fair question. Recording a ten-mark worksheet would not be.
       processCapture: s.id === 'a-sci-lab1' || s.id === 'a-sci-lab2',
+      // The reading task is the one place in the seed where the English is the
+      // point, so it demonstrates the refusal rather than only the happy path.
+      languageIsAssessed: s.id === 'a-sci-hw1',
       position: i,
     }))
   const sci9 = make('c-sci9', sci9Assignments)
@@ -255,6 +258,7 @@ function buildAssignments(): Assignment[] {
     // A quiz has no draft to coach — it is answered and auto-graded on submit.
     draftCoach: false,
     processCapture: false,
+    languageIsAssessed: false,
     position: sci9.length + i,
   }))
   return [...sci9, ...sci9Q, ...math9, ...chem11]

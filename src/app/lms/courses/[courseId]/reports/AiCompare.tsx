@@ -34,7 +34,7 @@ export function AiCompare({
   const shown = state.status !== 'idle' ? state : peek
 
   return (
-    <div className="lms-ai">
+    <div className="lms-ai" data-panel="report-draft">
       <div className="lms-flex lms-wrap lms-gap-sm">
         <form action={run}>
           <SubmitButton className="lms-btn lms-btn--sm" disabled={!configured || pending}>

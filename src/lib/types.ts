@@ -91,6 +91,13 @@ export interface Assignment {
    * surveillance.
    */
   processCapture: boolean
+  /**
+   * True when the English itself is what this task measures — a reading
+   * comprehension, a vocabulary check, a test of following written instructions.
+   * Translation is refused for these, because it would delete the measurement
+   * rather than remove a barrier.
+   */
+  languageIsAssessed: boolean
   /** Display ordering within the Assignments list. */
   position: number
 }

@@ -1465,3 +1465,45 @@ html {
   gap: 12px;
   margin: 0;
 }
+
+/* Language scaffolding. */
+.lms .lms-select--sm {
+  padding: 4px 8px;
+  font-size: 12.5px;
+  height: auto;
+  width: auto;
+}
+
+/* Glossary.
+   The English term is the heading and carries the weight; the gloss is indented
+   support beneath it. Inverting that — translation first, English as a footnote
+   — would quietly teach students the English is the optional part, which is the
+   opposite of what this is for. */
+.lms .lms-glossary {
+  margin: 8px 0 0;
+  display: grid;
+  gap: 10px;
+}
+.lms .lms-glossary__row {
+  padding-left: 12px;
+  border-left: 2px solid var(--lms-line-strong);
+}
+.lms .lms-glossary__row dt {
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: var(--lms-font-mono, ui-monospace, monospace);
+  letter-spacing: -0.01em;
+}
+.lms .lms-glossary__row dd {
+  margin: 2px 0 0;
+  display: grid;
+  gap: 2px;
+}
+.lms .lms-glossary__en {
+  font-size: 13px;
+  color: var(--lms-ink-soft);
+}
+.lms .lms-glossary__tr {
+  font-size: 13.5px;
+  line-height: 1.7;
+}

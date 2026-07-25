@@ -303,6 +303,7 @@ export interface AssignmentInput {
   standardIds?: string[]
   draftCoach?: boolean
   processCapture?: boolean
+  languageIsAssessed?: boolean
 }
 
 export async function createAssignment(input: AssignmentInput): Promise<Assignment> {
@@ -322,6 +323,7 @@ export async function createAssignment(input: AssignmentInput): Promise<Assignme
     standardIds: input.standardIds ?? [],
     draftCoach: input.draftCoach ?? true,
     processCapture: input.processCapture ?? false,
+    languageIsAssessed: input.languageIsAssessed ?? false,
     position: siblings.length,
   }
   d.assignments.push(assignment)
@@ -362,6 +364,7 @@ export async function createQuizAssignment(input: QuizInput): Promise<Assignment
     standardIds: input.standardIds ?? [],
     draftCoach: false,
     processCapture: false,
+    languageIsAssessed: false,
     position: siblings.length,
   }
   d.assignments.push(assignment)

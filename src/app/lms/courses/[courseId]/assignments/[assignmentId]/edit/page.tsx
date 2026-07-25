@@ -137,6 +137,18 @@ export default async function EditAssignmentPage({
           </p>
         </div>
 
+        <div className="lms-field">
+          <label className="lms-flex" style={{ cursor: 'pointer' }}>
+            <input type="checkbox" name="languageIsAssessed" defaultChecked={a.languageIsAssessed} />
+            <span>The English itself is what this task assesses</span>
+          </label>
+          <p className="lms-muted" style={{ fontSize: 12.5, margin: '4px 0 0' }}>
+            Tick this for reading comprehension, vocabulary, or anything testing whether a student can follow written
+            English. Translation is then refused and the student is told why. Leave it clear on subject tasks — a
+            student losing marks for misreading a chemistry question is not a chemistry result.
+          </p>
+        </div>
+
         <div className="lms-flex" style={{ marginTop: 8 }}>
           <SubmitButton className="lms-btn lms-btn--primary">
             Save changes

@@ -21,6 +21,8 @@ import { SubmitButton } from '../../../../../_components/interactive'
 import { llmConfigured } from '@/lib/ai/anthropic'
 import { DraftCoach } from './DraftCoach'
 import { ProvenanceBox } from './ProvenanceBox'
+import { Scaffold } from './Scaffold'
+import { readLanguage } from './scaffold-actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -85,6 +87,17 @@ export default async function AssignmentDetailPage({
           <RichText html={assignment.instructions} />
         ) : (
           <span className="lms-muted">No instructions provided.</span>
+        )}
+        {/* Directly under the English, inside the same card — the translation is
+            an addition to these instructions, not an alternative to them.
+            Students only: a teacher reading their own task needs nothing here. */}
+        {!isTeacher && !isQuiz && (
+          <Scaffold
+            courseId={course.id}
+            assignmentId={assignment.id}
+            configured={llmConfigured()}
+            initialLanguage={await readLanguage()}
+          />
         )}
       </div>
 

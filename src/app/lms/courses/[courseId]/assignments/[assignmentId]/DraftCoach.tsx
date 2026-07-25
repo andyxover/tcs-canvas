@@ -59,7 +59,7 @@ export function DraftCoach({
   const fb = shown.feedback
 
   return (
-    <section className="lms-ai" style={{ marginTop: 14 }}>
+    <section className="lms-ai" data-panel="draft-coach" style={{ marginTop: 14 }}>
       <div className="lms-between lms-wrap" style={{ gap: 10, marginBottom: 10 }}>
         <div>
           <strong style={{ fontSize: 14 }}>Feedback on your draft</strong>

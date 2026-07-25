@@ -55,6 +55,7 @@ export async function createAssignmentAction(courseId: string, fd: FormData): Pr
     standardIds: standardIds(fd),
     draftCoach: fd.get('draftCoach') === 'on',
     processCapture: fd.get('processCapture') === 'on',
+    languageIsAssessed: fd.get('languageIsAssessed') === 'on',
   })
   revalidatePath(`/lms/courses/${courseId}/assignments`, 'page')
   redirect(`/lms/courses/${courseId}/assignments/${created.id}`)
@@ -133,6 +134,7 @@ export async function updateAssignmentAction(courseId: string, assignmentId: str
     standardIds: standardIds(fd),
     draftCoach: fd.get('draftCoach') === 'on',
     processCapture: fd.get('processCapture') === 'on',
+    languageIsAssessed: fd.get('languageIsAssessed') === 'on',
   })
   revalidatePath(`/lms/courses/${courseId}/assignments/${assignmentId}`, 'page')
   redirect(`/lms/courses/${courseId}/assignments/${assignmentId}`)

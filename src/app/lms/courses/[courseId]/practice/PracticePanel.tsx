@@ -38,7 +38,7 @@ export function PracticePanel({
   const shown = state.status !== 'idle' ? state : peek
 
   return (
-    <div className="lms-ai" style={{ marginTop: 10 }}>
+    <div className="lms-ai" data-panel="practice" style={{ marginTop: 10 }}>
       <div className="lms-flex lms-wrap lms-gap-sm">
         <form action={run}>
           {/* Primary only when it can actually do something. A disabled control
