@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useOptimistic, useTransition } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { setIdentity } from '../actions'
+import { HoverLink } from './interactive'
 import { ThemeToggle } from './ThemeToggle'
 import type { IdentityKind, Person } from '@/lib/types'
 
@@ -19,6 +20,8 @@ export function TopBar({ viewer, teachers, students }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const ref = useRef<HTMLDivElement>(null)
+  const [switching, startSwitching] = useTransition()
+  const [shownViewer, setPendingViewer] = useOptimistic(viewer)
 
   function onSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -35,11 +38,22 @@ export function TopBar({ viewer, teachers, students }: Props) {
     return () => document.removeEventListener('mousedown', onDocClick)
   }, [open])
 
-  async function choose(kind: IdentityKind, id: string) {
+  /**
+   * Switching who you're viewing as is three sequential round trips — write the
+   * cookie, navigate, revalidate — and it used to sit there looking broken for
+   * all of them. The optimistic viewer swaps the name and avatar in the same
+   * frame as the click; if the action fails React reverts it for us.
+   */
+  function choose(kind: IdentityKind, id: string) {
+    const next = (kind === 'teacher' ? teachers : students).find((p) => p.id === id)
+    if (!next) return
     setOpen(false)
-    await setIdentity(kind, id)
-    router.push('/')
-    router.refresh()
+    startSwitching(async () => {
+      setPendingViewer({ kind, person: next })
+      await setIdentity(kind, id)
+      router.push('/')
+      router.refresh()
+    })
   }
 
   return (
@@ -52,16 +66,16 @@ export function TopBar({ viewer, teachers, students }: Props) {
       </Link>
       <span className="lms-topbar__lab">Sandbox</span>
       <nav className="lms-topbar__nav">
-        <Link href="/" className="lms-topbar__link" data-active={pathname === '/'}>
+        <HoverLink href="/" className="lms-topbar__link" data-active={pathname === '/'}>
           Courses
-        </Link>
-        <Link href="/agenda" className="lms-topbar__link" data-active={pathname === '/agenda'}>
+        </HoverLink>
+        <HoverLink href="/agenda" className="lms-topbar__link" data-active={pathname === '/agenda'}>
           Agenda
-        </Link>
-        {viewer.kind === 'teacher' && (
-          <Link href="/standards" className="lms-topbar__link" data-active={pathname === '/standards'}>
+        </HoverLink>
+        {shownViewer.kind === 'teacher' && (
+          <HoverLink href="/standards" className="lms-topbar__link" data-active={pathname === '/standards'}>
             Standards
-          </Link>
+          </HoverLink>
         )}
       </nav>
       <div className="lms-topbar__spacer" />
@@ -79,18 +93,18 @@ export function TopBar({ viewer, teachers, students }: Props) {
 
       <ThemeToggle />
 
-      <div className="lms-switch" ref={ref}>
+      <div className="lms-switch" ref={ref} data-busy={switching || undefined}>
         <button type="button" className="lms-switch__btn" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open}>
           <span
             className="lms-avatar"
-            style={{ width: 28, height: 28, background: viewer.person.color, fontSize: 12 }}
+            style={{ width: 28, height: 28, background: shownViewer.person.color, fontSize: 12 }}
             aria-hidden
           >
-            {initials(viewer.person.name)}
+            {initials(shownViewer.person.name)}
           </span>
           <span className="lms-switch__meta">
-            <span className="lms-switch__name">{viewer.person.name}</span>
-            <span className="lms-switch__role">Viewing as {viewer.kind}</span>
+            <span className="lms-switch__name">{shownViewer.person.name}</span>
+            <span className="lms-switch__role">Viewing as {shownViewer.kind}</span>
           </span>
           <span aria-hidden style={{ color: '#9fb0d6' }}>
             ▾
@@ -105,7 +119,7 @@ export function TopBar({ viewer, teachers, students }: Props) {
                 key={t.id}
                 type="button"
                 className="lms-switch__item"
-                data-active={viewer.kind === 'teacher' && viewer.person.id === t.id}
+                data-active={shownViewer.kind === 'teacher' && shownViewer.person.id === t.id}
                 onClick={() => choose('teacher', t.id)}
               >
                 <span className="lms-avatar" style={{ width: 26, height: 26, background: t.color, fontSize: 11 }} aria-hidden>
@@ -120,7 +134,7 @@ export function TopBar({ viewer, teachers, students }: Props) {
                 key={s.id}
                 type="button"
                 className="lms-switch__item"
-                data-active={viewer.kind === 'student' && viewer.person.id === s.id}
+                data-active={shownViewer.kind === 'student' && shownViewer.person.id === s.id}
                 onClick={() => choose('student', s.id)}
               >
                 <span className="lms-avatar" style={{ width: 26, height: 26, background: s.color, fontSize: 11 }} aria-hidden>

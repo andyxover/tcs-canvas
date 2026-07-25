@@ -3,13 +3,14 @@ import { listAssignments, listModules } from '@/lib/store'
 import type { CourseModule, ModuleItem } from '@/lib/types'
 import { courseCtx } from '../_shared'
 import { Badge, EmptyState, InlineDelete, formatBytes } from '../../../_components/ui'
+import { HoverLink, SubmitButton } from '../../../_components/interactive'
+import { ReorderableItems } from './ReorderableItems'
 import {
   addModuleItemAction,
   createModuleAction,
   deleteModuleAction,
   deleteModuleItemAction,
   moveModuleAction,
-  moveModuleItemAction,
 } from './actions'
 
 export const dynamic = 'force-dynamic'
@@ -53,9 +54,9 @@ export default async function ModulesPage({ params }: { params: Promise<{ course
           <summary style={{ cursor: 'pointer', fontWeight: 600 }}>+ New module</summary>
           <form action={createModuleAction.bind(null, course.id)} className="lms-flex" style={{ marginTop: 12, gap: 10 }}>
             <input name="name" className="lms-input" placeholder="Module name, e.g. Unit 2 — Energy" required />
-            <button type="submit" className="lms-btn lms-btn--primary">
+            <SubmitButton className="lms-btn lms-btn--primary">
               Add
-            </button>
+            </SubmitButton>
           </form>
         </details>
       )}
@@ -128,28 +129,24 @@ function ModuleCard({
       {mod.items.length === 0 ? (
         <div className="lms-row lms-muted">No items yet.</div>
       ) : (
-        [...mod.items]
-          .sort((a, b) => a.position - b.position)
-          .map((item, i, arr) => (
-            <div key={item.id} className="lms-row" style={{ padding: 0 }}>
-              <ModuleItemRow item={item} courseId={courseId} />
-              {isTeacher && (
-                <div className="lms-flex lms-gap-sm" style={{ paddingRight: 12 }}>
-                  <ReorderControls
-                    up={moveModuleItemAction.bind(null, courseId, mod.id, item.id, 'up')}
-                    down={moveModuleItemAction.bind(null, courseId, mod.id, item.id, 'down')}
-                    canUp={i > 0}
-                    canDown={i < arr.length - 1}
-                  />
-                  <InlineDelete
-                    action={deleteModuleItemAction.bind(null, courseId, mod.id, item.id)}
-                    confirm="Remove this item?"
-                    summary="✕"
-                  />
-                </div>
-              )}
-            </div>
-          ))
+        <ReorderableItems
+          courseId={courseId}
+          moduleId={mod.id}
+          isTeacher={isTeacher}
+          rows={[...mod.items]
+            .sort((a, b) => a.position - b.position)
+            .map((item) => ({
+              id: item.id,
+              content: <ModuleItemRow item={item} courseId={courseId} />,
+              deleteControl: (
+                <InlineDelete
+                  action={deleteModuleItemAction.bind(null, courseId, mod.id, item.id)}
+                  confirm="Remove this item?"
+                  summary="✕"
+                />
+              ),
+            }))}
+        />
       )}
 
       {isTeacher && (
@@ -191,9 +188,9 @@ function ModuleCard({
               <label className="lms-label">File upload (choose a file)</label>
               <input name="file" type="file" className="lms-input" />
             </div>
-            <button type="submit" className="lms-btn lms-btn--primary lms-btn--sm" style={{ alignSelf: 'flex-start' }}>
+            <SubmitButton className="lms-btn lms-btn--primary lms-btn--sm" style={{ alignSelf: 'flex-start' }}>
               Add item
-            </button>
+            </SubmitButton>
           </form>
         </details>
       )}
@@ -220,16 +217,16 @@ function ModuleItemRow({ item, courseId }: { item: ModuleItem; courseId: string 
 
   if (item.kind === 'assignment' && item.refId) {
     return (
-      <Link href={`/courses/${courseId}/assignments/${item.refId}`} className="lms-modlink">
+      <HoverLink href={`/courses/${courseId}/assignments/${item.refId}`} className="lms-modlink">
         {inner}
-      </Link>
+      </HoverLink>
     )
   }
   if (item.kind === 'page' && item.refId) {
     return (
-      <Link href={`/courses/${courseId}/pages/${item.refId}`} className="lms-modlink">
+      <HoverLink href={`/courses/${courseId}/pages/${item.refId}`} className="lms-modlink">
         {inner}
-      </Link>
+      </HoverLink>
     )
   }
   if (item.kind === 'link' && item.url) {

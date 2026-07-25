@@ -12,6 +12,7 @@ import type { Course } from '@/lib/types'
 import { courseCtx } from '../_shared'
 import { Badge, EmptyState } from '../../../_components/ui'
 import { ProficiencyChip } from '../../../_components/Standards'
+import { HoverLink } from '../../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -210,7 +211,7 @@ function StudentStandards({ courseId, studentId, standardIds }: { courseId: stri
                     {row.history.length > 0 && (
                       <div className="lms-flex lms-wrap lms-gap-sm" style={{ marginTop: 6 }}>
                         {row.history.map((h, i) => (
-                          <Link
+                          <HoverLink
                             key={`${h.assignmentId}-${i}`}
                             href={`/courses/${courseId}/assignments/${h.assignmentId}`}
                             className="lms-evidence"
@@ -220,7 +221,7 @@ function StudentStandards({ courseId, studentId, standardIds }: { courseId: stri
                               {PROFICIENCY_META[h.level].short}
                             </span>
                             <span>{h.assignmentTitle}</span>
-                          </Link>
+                          </HoverLink>
                         ))}
                       </div>
                     )}

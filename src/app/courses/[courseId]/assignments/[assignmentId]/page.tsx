@@ -16,6 +16,7 @@ import type { Quiz } from '@/lib/types'
 import { StandardList } from '../../../../_components/Standards'
 import { deleteAssignmentAction, takeQuizAction, turnInAction } from '../actions'
 import { Badge, RichText, fmtDay, fmtRelative } from '../../../../_components/ui'
+import { SubmitButton } from '../../../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -66,9 +67,9 @@ export default async function AssignmentDetailPage({
               <summary className="lms-btn lms-btn--sm lms-btn--danger-ghost">Delete</summary>
               <form action={deleteAssignmentAction.bind(null, course.id, assignment.id)} className="lms-delete-confirm">
                 <span className="lms-muted" style={{ fontSize: 12.5 }}>Delete this {isQuiz ? 'quiz' : 'assignment'} and all submissions?</span>
-                <button type="submit" className="lms-btn lms-btn--sm lms-btn--danger">
+                <SubmitButton className="lms-btn lms-btn--sm lms-btn--danger">
                   Yes, delete
-                </button>
+                </SubmitButton>
               </form>
             </details>
           </div>
@@ -254,9 +255,9 @@ function StudentSubmitPanel({ courseId, assignmentId, studentId }: { courseId: s
             </label>
             <input id="fileName" name="fileName" className="lms-input" placeholder="e.g. lab-report.pdf" />
           </div>
-          <button type="submit" className="lms-btn lms-btn--primary">
+          <SubmitButton className="lms-btn lms-btn--primary">
             {sub.state === 'submitted' ? 'Resubmit' : 'Turn in'}
-          </button>
+          </SubmitButton>
         </form>
       )}
     </section>
@@ -377,9 +378,9 @@ function QuizStudentView({ courseId, quiz, points, studentId }: { courseId: stri
             </div>
           </fieldset>
         ))}
-        <button type="submit" className="lms-btn lms-btn--primary" style={{ alignSelf: 'flex-start' }}>
+        <SubmitButton className="lms-btn lms-btn--primary" style={{ alignSelf: 'flex-start' }}>
           Submit quiz
-        </button>
+        </SubmitButton>
       </form>
     </section>
   )

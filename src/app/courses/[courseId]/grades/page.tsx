@@ -9,6 +9,7 @@ import { isMissing, letterForPct } from '@/lib/grade-calc'
 import type { Assignment, Course } from '@/lib/types'
 import { courseCtx } from '../_shared'
 import { Avatar, Badge, EmptyState } from '../../../_components/ui'
+import { HoverLink } from '../../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -140,7 +141,7 @@ function StudentGrades({ course, studentId }: { course: Course; studentId: strin
               return (
                 <tr key={a.id}>
                   <td className="lms-table__student" style={{ fontWeight: 500 }}>
-                    <Link href={`/courses/${course.id}/assignments/${a.id}`}>{a.title}</Link>
+                    <HoverLink href={`/courses/${course.id}/assignments/${a.id}`}>{a.title}</HoverLink>
                   </td>
                   <td className="lms-muted">{a.category}</td>
                   <td className="lms-table__num">

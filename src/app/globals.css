@@ -1054,3 +1054,104 @@ body { background: #f4f5f7; }
   background: var(--lms-bg);
 }
 .lms .lms-evidence:hover { border-color: var(--lms-line-strong); color: var(--lms-ink); }
+
+/* ---- Loading skeletons ----
+   Every route ships a loading.tsx built from these. Two jobs: acknowledge the
+   click in the same frame, and hold the destination's shape so arriving content
+   doesn't shift the layout under the reader. */
+@keyframes lms-shimmer {
+  from { background-position: 160% 0; }
+  to { background-position: -60% 0; }
+}
+.lms .lms-skel {
+  display: block;
+  border-radius: 6px;
+  background-color: var(--lms-line);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--lms-surface) 70%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: lms-shimmer 1.5s ease-in-out infinite;
+}
+.lms .lms-skel--text { height: 12px; }
+.lms .lms-skel--title { height: 28px; border-radius: 7px; }
+.lms .lms-skel--chip { height: 22px; border-radius: 999px; }
+.lms .lms-skel-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--lms-line);
+  border-radius: var(--lms-radius);
+  background: var(--lms-surface);
+}
+.lms .lms-skel-row__main { flex: 1; min-width: 0; display: grid; gap: 8px; }
+
+/* ---- Click acknowledgement ----
+   Rendered inside every HoverLink and driven by useLinkStatus. Fixed footprint,
+   toggled with opacity, so showing it never shifts the layout. */
+@keyframes lms-pending-pulse {
+  0%, 100% { transform: scale(0.7); opacity: 0.45; }
+  50% { transform: scale(1); opacity: 1; }
+}
+.lms .lms-pending {
+  width: 7px;
+  height: 7px;
+  margin-left: 7px;
+  border-radius: 50%;
+  background: var(--lms-accent);
+  opacity: 0;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+  transition: opacity 90ms ease;
+}
+.lms .lms-pending[data-on] {
+  opacity: 1;
+  animation: lms-pending-pulse 700ms ease-in-out infinite;
+}
+/* Let the pending child tint the whole row/tab it sits in. */
+.lms .lms-navlink:has(.lms-pending[data-on]),
+.lms .lms-row:has(.lms-pending[data-on]),
+.lms .lms-hub-row:has(.lms-pending[data-on]),
+.lms .lms-modlink:has(.lms-pending[data-on]) {
+  background: var(--lms-info-bg);
+}
+
+/* ---- Submitting state ----
+   Server actions round-trip and then revalidate, so without this a submit looks
+   like nothing happened. Driven by useFormStatus in SubmitButton. */
+@keyframes lms-spin { to { transform: rotate(360deg); } }
+.lms .lms-spinner {
+  width: 12px;
+  height: 12px;
+  margin-right: 7px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: -1px;
+  animation: lms-spin 620ms linear infinite;
+}
+.lms .lms-btn[data-pending] { cursor: progress; opacity: 0.82; }
+/* Role switch shows the new identity optimistically; this marks it not-yet-settled. */
+.lms .lms-switch[data-busy] .lms-switch__btn { opacity: 0.72; cursor: progress; }
+
+/* ---- Per-navigation enter animation ----
+   Applied by template.tsx, which remounts on every navigation, so this plays on
+   each route change rather than only on first paint. Transform + opacity only,
+   so it stays on the compositor. */
+@keyframes lms-view-enter {
+  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+  to { opacity: 1; transform: none; }
+}
+.lms .lms-view { animation: lms-view-enter 240ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lms .lms-skel { animation: none; }
+  .lms .lms-view { animation: none; }
+}

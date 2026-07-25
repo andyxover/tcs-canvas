@@ -1,7 +1,8 @@
 import { courseCtx } from '../_shared'
 import { RichText } from '../../../_components/ui'
-import { RichTextEditor } from '../../../_components/RichTextEditor'
+import { RichTextField } from '../../../_components/RichTextField'
 import { saveSyllabusAction } from './actions'
+import { SubmitButton } from '../../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,10 +17,10 @@ export default async function SyllabusPage({ params }: { params: Promise<{ cours
         <details className="lms-card lms-card--pad">
           <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Edit syllabus</summary>
           <form action={saveSyllabusAction.bind(null, course.id)} className="lms-stack" style={{ marginTop: 12 }}>
-            <RichTextEditor name="syllabus" defaultHTML={course.syllabus} placeholder="Write the course syllabus…" minHeight={200} />
-            <button type="submit" className="lms-btn lms-btn--primary" style={{ alignSelf: 'flex-start' }}>
+            <RichTextField name="syllabus" defaultHTML={course.syllabus} placeholder="Write the course syllabus…" minHeight={200} />
+            <SubmitButton className="lms-btn lms-btn--primary" style={{ alignSelf: 'flex-start' }}>
               Save syllabus
-            </button>
+            </SubmitButton>
           </form>
         </details>
       )}

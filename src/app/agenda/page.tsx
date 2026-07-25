@@ -10,6 +10,7 @@ import {
 import { getAssignment } from '@/lib/store'
 import { isMissing } from '@/lib/grade-calc'
 import { Badge, EmptyState, fmtDay } from '../_components/ui'
+import { HoverLink } from '../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -75,7 +76,7 @@ function AgendaRow({ entry, isTeacher, studentId }: { entry: AgendaEntry; isTeac
   const missing = assignment && sub ? isMissing(assignment, sub) : false
 
   return (
-    <Link href={`/courses/${entry.courseId}/assignments/${entry.assignmentId}`} className="lms-row">
+    <HoverLink href={`/courses/${entry.courseId}/assignments/${entry.assignmentId}`} className="lms-row">
       <span
         aria-hidden
         style={{ width: 6, alignSelf: 'stretch', borderRadius: 3, background: entry.courseColor, flexShrink: 0 }}
@@ -96,7 +97,7 @@ function AgendaRow({ entry, isTeacher, studentId }: { entry: AgendaEntry; isTeac
       {!isTeacher && sub && (
         <StudentTag graded={sub.state === 'graded'} submitted={sub.state === 'submitted'} missing={missing} />
       )}
-    </Link>
+    </HoverLink>
   )
 }
 

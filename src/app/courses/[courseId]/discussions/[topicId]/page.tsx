@@ -5,6 +5,7 @@ import { getCourse, getDiscussionTopic, getPerson, listDiscussionPosts } from '@
 import type { DiscussionPost } from '@/lib/types'
 import { Avatar, InlineDelete, RichText, fmtRelative } from '../../../../_components/ui'
 import { addPostAction, deleteTopicAction } from '../actions'
+import { SubmitButton } from '../../../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,9 +50,9 @@ export default async function TopicPage({
       <form action={addPostAction.bind(null, courseId, topicId, viewer.person.id)} className="lms-card lms-card--pad">
         <input type="hidden" name="parentId" value="" />
         <textarea name="body" className="lms-textarea" placeholder="Add to the discussion…" required style={{ minHeight: 80 }} />
-        <button type="submit" className="lms-btn lms-btn--primary" style={{ marginTop: 10 }}>
+        <SubmitButton className="lms-btn lms-btn--primary" style={{ marginTop: 10 }}>
           Reply
-        </button>
+        </SubmitButton>
       </form>
 
       <div className="lms-stack">
@@ -115,9 +116,9 @@ function PostThread({
         <form action={addPostAction.bind(null, courseId, topicId, viewerId)} className="lms-flex" style={{ marginTop: 8, gap: 8 }}>
           <input type="hidden" name="parentId" value={post.id} />
           <input name="body" className="lms-input" placeholder="Write a reply…" required />
-          <button type="submit" className="lms-btn lms-btn--sm lms-btn--primary">
+          <SubmitButton className="lms-btn lms-btn--sm lms-btn--primary">
             Send
-          </button>
+          </SubmitButton>
         </form>
       </details>
     </div>

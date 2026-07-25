@@ -4,8 +4,9 @@ import { listRubrics } from '@/lib/store'
 import { standardsFor } from '@/lib/bc-curriculum'
 import { courseCtx } from '../../_shared'
 import { createAssignmentAction } from '../actions'
-import { RichTextEditor } from '../../../../_components/RichTextEditor'
+import { RichTextField } from '../../../../_components/RichTextField'
 import { StandardPicker } from '../../../../_components/StandardPicker'
+import { SubmitButton } from '../../../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,7 +34,7 @@ export default async function NewAssignmentPage({ params }: { params: Promise<{ 
 
         <div className="lms-field">
           <label className="lms-label">Instructions</label>
-          <RichTextEditor name="instructions" placeholder="Describe the task…" />
+          <RichTextField name="instructions" placeholder="Describe the task…" />
         </div>
 
         <div className="lms-form-row">
@@ -101,9 +102,9 @@ export default async function NewAssignmentPage({ params }: { params: Promise<{ 
         </div>
 
         <div className="lms-flex" style={{ marginTop: 8 }}>
-          <button type="submit" className="lms-btn lms-btn--primary">
+          <SubmitButton className="lms-btn lms-btn--primary">
             Create assignment
-          </button>
+          </SubmitButton>
           <Link href={`/courses/${course.id}/assignments`} className="lms-btn lms-btn--ghost">
             Cancel
           </Link>

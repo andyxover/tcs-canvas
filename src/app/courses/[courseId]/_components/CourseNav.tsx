@@ -1,7 +1,7 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { HoverLink } from '../../../_components/interactive'
 
 type Props = {
   courseId: string
@@ -44,12 +44,12 @@ export function CourseNav({ courseId, courseName, courseCode, term, isTeacher }:
       {items.map((item) => {
         const href = item.seg ? `${base}/${item.seg}` : base
         return (
-          <Link key={item.label} href={href} className="lms-navlink" data-active={isActive(item.seg)}>
+          <HoverLink key={item.label} href={href} className="lms-navlink" data-active={isActive(item.seg)}>
             <span aria-hidden style={{ width: 18, textAlign: 'center' }}>
               {item.icon}
             </span>
             {item.label}
-          </Link>
+          </HoverLink>
         )
       })}
     </nav>

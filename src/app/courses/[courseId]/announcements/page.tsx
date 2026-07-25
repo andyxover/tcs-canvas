@@ -2,7 +2,8 @@ import { getPerson, listAnnouncements } from '@/lib/store'
 import { courseCtx } from '../_shared'
 import { Avatar, EmptyState, InlineDelete, RichText, fmtRelative } from '../../../_components/ui'
 import { createAnnouncementAction, deleteAnnouncementAction } from './actions'
-import { RichTextEditor } from '../../../_components/RichTextEditor'
+import { RichTextField } from '../../../_components/RichTextField'
+import { SubmitButton } from '../../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,10 +20,10 @@ export default async function AnnouncementsPage({ params }: { params: Promise<{ 
           <summary style={{ cursor: 'pointer', fontWeight: 600 }}>+ New announcement</summary>
           <form action={createAnnouncementAction.bind(null, course.id, viewer.person.id)} className="lms-stack" style={{ marginTop: 12 }}>
             <input name="title" className="lms-input" placeholder="Title" required />
-            <RichTextEditor name="body" placeholder="Message to the class…" minHeight={90} />
-            <button type="submit" className="lms-btn lms-btn--primary" style={{ alignSelf: 'flex-start' }}>
+            <RichTextField name="body" placeholder="Message to the class…" minHeight={90} />
+            <SubmitButton className="lms-btn lms-btn--primary" style={{ alignSelf: 'flex-start' }}>
               Post
-            </button>
+            </SubmitButton>
           </form>
         </details>
       )}

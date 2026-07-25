@@ -2,6 +2,7 @@
 // hooks) so they can render inside RSC pages.
 
 import type { Person } from '@/lib/types'
+import { SubmitButton } from '../_components/interactive'
 
 export function Avatar({ person, size = 32 }: { person: Person; size?: number }) {
   const initials = person.name
@@ -54,9 +55,9 @@ export function InlineDelete({
         <span className="lms-muted" style={{ fontSize: 12.5 }}>
           {confirm}
         </span>
-        <button type="submit" className="lms-btn lms-btn--sm lms-btn--danger">
+        <SubmitButton className="lms-btn lms-btn--sm lms-btn--danger">
           Yes, delete
-        </button>
+        </SubmitButton>
       </form>
     </details>
   )

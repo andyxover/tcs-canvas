@@ -5,8 +5,9 @@ import { getAssignment, getCourse, getQuiz } from '@/lib/store'
 import { standardsFor } from '@/lib/bc-curriculum'
 import { updateQuizAction } from '../../actions'
 import { QuizBuilder } from '../../_components/QuizBuilder'
-import { RichTextEditor } from '../../../../../_components/RichTextEditor'
+import { RichTextField } from '../../../../../_components/RichTextField'
 import { StandardPicker } from '../../../../../_components/StandardPicker'
+import { SubmitButton } from '../../../../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,7 +49,7 @@ export default async function EditQuizPage({
 
           <div className="lms-field">
             <label className="lms-label">Instructions (optional)</label>
-            <RichTextEditor name="instructions" defaultHTML={a.instructions} placeholder="Any notes before the questions…" minHeight={70} />
+            <RichTextField name="instructions" defaultHTML={a.instructions} placeholder="Any notes before the questions…" minHeight={70} />
           </div>
 
           <div className="lms-form-row">
@@ -96,9 +97,9 @@ export default async function EditQuizPage({
         <QuizBuilder defaultQuestions={quiz.questions} />
 
         <div className="lms-flex" style={{ marginTop: 4 }}>
-          <button type="submit" className="lms-btn lms-btn--primary">
+          <SubmitButton className="lms-btn lms-btn--primary">
             Save quiz
-          </button>
+          </SubmitButton>
           <Link href={`/courses/${course.id}/assignments/${a.id}`} className="lms-btn lms-btn--ghost">
             Cancel
           </Link>

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { courseCtx } from '../_shared'
 import { saveCourseSettingsAction } from './actions'
 import { CategoryEditor } from './CategoryEditor'
+import { SubmitButton } from '../../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -73,9 +74,9 @@ export default async function CourseSettingsPage({ params }: { params: Promise<{
           </div>
         </div>
 
-        <button type="submit" className="lms-btn lms-btn--primary" style={{ alignSelf: 'flex-start' }}>
+        <SubmitButton className="lms-btn lms-btn--primary" style={{ alignSelf: 'flex-start' }}>
           Save settings
-        </button>
+        </SubmitButton>
       </form>
     </div>
   )

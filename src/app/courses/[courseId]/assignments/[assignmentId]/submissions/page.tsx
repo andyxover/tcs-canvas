@@ -7,6 +7,7 @@ import { PROFICIENCY_LEVELS, PROFICIENCY_META, getStandard } from '@/lib/bc-curr
 import type { Rubric, Submission } from '@/lib/types'
 import { gradeAction } from '../../actions'
 import { Avatar, Badge, fmtRelative } from '../../../../../_components/ui'
+import { SubmitButton } from '../../../../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -112,9 +113,9 @@ export default async function SubmissionsPage({
                       placeholder="Optional comment"
                     />
                   </div>
-                  <button type="submit" className="lms-btn lms-btn--primary">
+                  <SubmitButton className="lms-btn lms-btn--primary">
                     Save
-                  </button>
+                  </SubmitButton>
                 </div>
               </form>
             </div>

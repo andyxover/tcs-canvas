@@ -11,6 +11,7 @@ import {
 import { isMissing } from '@/lib/grade-calc'
 import { courseCtx } from './_shared'
 import { Avatar, Badge, fmtDay, fmtRelative } from '../../_components/ui'
+import { HoverLink } from '../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -139,7 +140,7 @@ async function StudentOverview({ courseId, studentId, showGrade }: { courseId: s
             {upcoming.map((a) => {
               const missing = isMissing(a, getSubmission(a.id, studentId))
               return (
-                <Link key={a.id} href={`/courses/${courseId}/assignments/${a.id}`} className="lms-row">
+                <HoverLink key={a.id} href={`/courses/${courseId}/assignments/${a.id}`} className="lms-row">
                   <div className="lms-row__icon" aria-hidden>
                     ✎
                   </div>
@@ -150,7 +151,7 @@ async function StudentOverview({ courseId, studentId, showGrade }: { courseId: s
                     </div>
                   </div>
                   {missing && <Badge tone="danger">Missing</Badge>}
-                </Link>
+                </HoverLink>
               )
             })}
           </div>

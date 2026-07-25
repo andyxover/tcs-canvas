@@ -3,7 +3,8 @@ import { getPerson, listDiscussionPosts, listDiscussionTopics } from '@/lib/stor
 import { courseCtx } from '../_shared'
 import { Avatar, EmptyState, fmtRelative } from '../../../_components/ui'
 import { createTopicAction } from './actions'
-import { RichTextEditor } from '../../../_components/RichTextEditor'
+import { RichTextField } from '../../../_components/RichTextField'
+import { HoverLink, SubmitButton } from '../../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,10 +20,10 @@ export default async function DiscussionsPage({ params }: { params: Promise<{ co
         <summary style={{ cursor: 'pointer', fontWeight: 600 }}>+ New discussion</summary>
         <form action={createTopicAction.bind(null, course.id, viewer.person.id)} className="lms-stack" style={{ marginTop: 12 }}>
           <input name="title" className="lms-input" placeholder="Discussion title" required />
-          <RichTextEditor name="body" placeholder="Kick off the conversation…" minHeight={90} />
-          <button type="submit" className="lms-btn lms-btn--primary" style={{ alignSelf: 'flex-start' }}>
+          <RichTextField name="body" placeholder="Kick off the conversation…" minHeight={90} />
+          <SubmitButton className="lms-btn lms-btn--primary" style={{ alignSelf: 'flex-start' }}>
             Start discussion
-          </button>
+          </SubmitButton>
         </form>
       </details>
 
@@ -34,7 +35,7 @@ export default async function DiscussionsPage({ params }: { params: Promise<{ co
             const author = getPerson(t.authorId)
             const replies = listDiscussionPosts(t.id).length
             return (
-              <Link key={t.id} href={`/courses/${course.id}/discussions/${t.id}`} className="lms-row">
+              <HoverLink key={t.id} href={`/courses/${course.id}/discussions/${t.id}`} className="lms-row">
                 {author && <Avatar person={author} size={34} />}
                 <div className="lms-row__main">
                   <div className="lms-row__title">{t.title}</div>
@@ -42,7 +43,7 @@ export default async function DiscussionsPage({ params }: { params: Promise<{ co
                     {author?.name} · {fmtRelative(t.postedAt)} · {replies} {replies === 1 ? 'reply' : 'replies'}
                   </div>
                 </div>
-              </Link>
+              </HoverLink>
             )
           })}
         </div>

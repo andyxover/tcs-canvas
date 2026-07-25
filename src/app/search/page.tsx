@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getViewer } from '@/lib/session'
 import { search } from '@/lib/store'
 import { Badge, EmptyState } from '../_components/ui'
+import { HoverLink } from '../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,13 +34,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       {results.courses.length > 0 && (
         <Section title="Courses">
           {results.courses.map((c) => (
-            <Link key={c.id} href={`/courses/${c.id}`} className="lms-hub-row">
+            <HoverLink key={c.id} href={`/courses/${c.id}`} className="lms-hub-row">
               <span aria-hidden className="lms-hub-row__accent" style={{ background: c.color }} />
               <div className="lms-hub-row__main">
                 <div className="lms-hub-row__title">{c.name}</div>
                 <div className="lms-row__meta">{c.code}</div>
               </div>
-            </Link>
+            </HoverLink>
           ))}
         </Section>
       )}
@@ -47,7 +48,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       {results.assignments.length > 0 && (
         <Section title="Assignments">
           {results.assignments.map((a) => (
-            <Link key={a.id} href={`/courses/${a.courseId}/assignments/${a.id}`} className="lms-hub-row">
+            <HoverLink key={a.id} href={`/courses/${a.courseId}/assignments/${a.id}`} className="lms-hub-row">
               <span aria-hidden style={{ width: 22, textAlign: 'center' }}>
                 {a.isQuiz ? '◎' : '✎'}
               </span>
@@ -58,7 +59,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                 </div>
                 <div className="lms-row__meta">{a.courseName}</div>
               </div>
-            </Link>
+            </HoverLink>
           ))}
         </Section>
       )}

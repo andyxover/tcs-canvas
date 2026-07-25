@@ -9,6 +9,7 @@ import { isLate, isMissing } from '@/lib/grade-calc'
 import type { Assignment } from '@/lib/types'
 import { courseCtx } from '../_shared'
 import { Badge, EmptyState, fmtDay } from '../../../_components/ui'
+import { HoverLink } from '../../../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,7 +42,7 @@ export default async function AssignmentsPage({ params }: { params: Promise<{ co
       ) : (
         <div className="lms-list">
           {assignments.map((a) => (
-            <Link key={a.id} href={`/courses/${course.id}/assignments/${a.id}`} className="lms-row">
+            <HoverLink key={a.id} href={`/courses/${course.id}/assignments/${a.id}`} className="lms-row">
               <div className="lms-row__icon" aria-hidden>
                 {a.submissionType === 'quiz' ? '◎' : '✎'}
               </div>
@@ -68,7 +69,7 @@ export default async function AssignmentsPage({ params }: { params: Promise<{ co
               ) : (
                 <StudentStatus assignment={a} studentId={viewer.person.id} />
               )}
-            </Link>
+            </HoverLink>
           ))}
         </div>
       )}

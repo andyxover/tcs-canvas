@@ -15,6 +15,7 @@ import {
 import { isMissing } from '@/lib/grade-calc'
 import type { Course } from '@/lib/types'
 import { Avatar, Badge, EmptyState, fmtDay } from './_components/ui'
+import { HoverLink } from './_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -94,11 +95,11 @@ function GradingQueue({ teacherId }: { teacherId: string }) {
       ) : (
         <div className="lms-stack" style={{ gap: 8, marginTop: 10 }}>
           {withWork.map((e) => (
-            <Link key={e.courseId} href={`/courses/${e.courseId}/assignments`} className="lms-hub-row">
+            <HoverLink key={e.courseId} href={`/courses/${e.courseId}/assignments`} className="lms-hub-row">
               <span aria-hidden className="lms-hub-row__accent" style={{ background: e.courseColor }} />
               <span className="lms-hub-row__title">{e.courseName}</span>
               <Badge tone="warn">{e.toGrade}</Badge>
-            </Link>
+            </HoverLink>
           ))}
         </div>
       )}
@@ -155,7 +156,7 @@ function StudentTodo({ studentId, courseIds }: { studentId: string; courseIds: s
       ) : (
         <div className="lms-stack" style={{ gap: 8 }}>
           {upcoming.map((x) => (
-            <Link key={x.assignmentId} href={`/courses/${x.courseId}/assignments/${x.assignmentId}`} className="lms-hub-row">
+            <HoverLink key={x.assignmentId} href={`/courses/${x.courseId}/assignments/${x.assignmentId}`} className="lms-hub-row">
               <span aria-hidden className="lms-hub-row__accent" style={{ background: x.courseColor }} />
               <div className="lms-hub-row__main">
                 <div className="lms-hub-row__title">
@@ -167,7 +168,7 @@ function StudentTodo({ studentId, courseIds }: { studentId: string; courseIds: s
                 </div>
               </div>
               <TodoTag status={x.status} />
-            </Link>
+            </HoverLink>
           ))}
         </div>
       )}

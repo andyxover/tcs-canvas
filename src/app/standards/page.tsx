@@ -4,6 +4,7 @@ import { KIND_META, isImported, listCurricula, listStandards } from '@/lib/bc-cu
 import { Badge } from '../_components/ui'
 import { ImportForm } from './ImportForm'
 import { resetStandardsAction } from './actions'
+import { SubmitButton } from '../_components/interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -96,9 +97,9 @@ export default async function StandardsCataloguePage() {
 
           {importedCount > 0 && (
             <form action={resetStandardsAction}>
-              <button type="submit" className="lms-btn lms-btn--sm lms-btn--danger-ghost">
+              <SubmitButton className="lms-btn lms-btn--sm lms-btn--danger-ghost">
                 Remove {importedCount} imported standard{importedCount === 1 ? '' : 's'}
-              </button>
+              </SubmitButton>
             </form>
           )}
         </aside>
