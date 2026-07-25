@@ -24,8 +24,8 @@ const ITEM_ICON: Record<ModuleItem['kind'], string> = {
 
 export default async function ModulesPage({ params }: { params: Promise<{ courseId: string }> }) {
   const { course, isTeacher } = await courseCtx(params)
-  const modules = listModules(course.id)
-  const assignments = listAssignments(course.id)
+  const modules = await listModules(course.id)
+  const assignments = await listAssignments(course.id)
 
   return (
     <div className="lms-stack">

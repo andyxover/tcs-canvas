@@ -48,7 +48,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           }}
         />
         <div className="lms">
-          <TopBar viewer={viewer} teachers={listTeachers()} students={listStudents()} />
+          <TopBar viewer={viewer} teachers={await listTeachers()} students={await listStudents()} />
           {children}
         </div>
       </body>

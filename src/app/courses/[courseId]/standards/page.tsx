@@ -20,7 +20,7 @@ const KIND_ORDER: StandardKind[] = ['big-idea', 'curricular-competency', 'conten
 
 export default async function StandardsPage({ params }: { params: Promise<{ courseId: string }> }) {
   const { course, viewer, isTeacher } = await courseCtx(params)
-  const standardIds = courseStandardIds(course.id)
+  const standardIds = await courseStandardIds(course.id)
 
   return (
     <div className="lms-stack">
@@ -64,19 +64,27 @@ function Legend() {
 
 // ---- Teacher: class mastery grid ---------------------------------------
 
-function MasteryGrid({ course, standardIds }: { course: Course; standardIds: string[] }) {
-  const roster = listRoster(course.id)
+async function MasteryGrid({ course, standardIds }: { course: Course; standardIds: string[] }) {
+  const roster = await listRoster(course.id)
   // studentId → standardId → latest level
   const byStudent = new Map<string, Map<string, ProficiencyLevel | null>>()
   for (const s of roster) {
     const m = new Map<string, ProficiencyLevel | null>()
-    for (const row of studentMastery(course.id, s.id)) m.set(row.standardId, row.latest)
+    for (const row of await studentMastery(course.id, s.id)) m.set(row.standardId, row.latest)
     byStudent.set(s.id, m)
   }
 
+  // Resolve the catalogue once rather than looking each standard up inside a
+  // filter — one pass instead of N round trips once this is database-backed.
+  const stdById = new Map(
+    (await Promise.all(standardIds.map((id) => getStandard(id))))
+      .filter((x) => x != null)
+      .map((x) => [x.id, x] as const),
+  )
+
   const grouped = KIND_ORDER.map((kind) => ({
     kind,
-    ids: standardIds.filter((id) => getStandard(id)?.kind === kind),
+    ids: standardIds.filter((id) => stdById.get(id)?.kind === kind),
   })).filter((g) => g.ids.length > 0)
 
   return (
@@ -101,7 +109,7 @@ function MasteryGrid({ course, standardIds }: { course: Course; standardIds: str
               </thead>
               <tbody>
                 {g.ids.map((sid) => {
-                  const std = getStandard(sid)
+                  const std = stdById.get(sid)
                   if (!std) return null
                   const levels = roster
                     .map((s) => byStudent.get(s.id)?.get(sid) ?? null)
@@ -155,14 +163,20 @@ function MasteryGrid({ course, standardIds }: { course: Course; standardIds: str
 
 // ---- Student: my proficiency -------------------------------------------
 
-function StudentStandards({ courseId, studentId, standardIds }: { courseId: string; studentId: string; standardIds: string[] }) {
-  const mastery = studentMastery(courseId, studentId)
+async function StudentStandards({ courseId, studentId, standardIds }: { courseId: string; studentId: string; standardIds: string[] }) {
+  const mastery = await studentMastery(courseId, studentId)
   const assessed = mastery.filter((m) => m.latest != null)
   const counts = PROFICIENCY_LEVELS.map((l) => ({ level: l, n: assessed.filter((m) => m.latest === l).length }))
 
+  const stdById = new Map(
+    (await Promise.all(mastery.map((m) => getStandard(m.standardId))))
+      .filter((x) => x != null)
+      .map((x) => [x.id, x] as const),
+  )
+
   const grouped = KIND_ORDER.map((kind) => ({
     kind,
-    rows: mastery.filter((m) => getStandard(m.standardId)?.kind === kind),
+    rows: mastery.filter((m) => stdById.get(m.standardId)?.kind === kind),
   })).filter((g) => g.rows.length > 0)
 
   return (
@@ -198,7 +212,7 @@ function StudentStandards({ courseId, studentId, standardIds }: { courseId: stri
           </h2>
           <div className="lms-stack" style={{ gap: 8 }}>
             {g.rows.map((row) => {
-              const std = getStandard(row.standardId)
+              const std = stdById.get(row.standardId)
               if (!std) return null
               return (
                 <div key={row.standardId} className="lms-std">

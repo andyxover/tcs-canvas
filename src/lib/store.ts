@@ -30,7 +30,7 @@ import type {
 
 const globalRef = globalThis as unknown as { __lmsLabData?: LmsData }
 
-function data(): LmsData {
+async function data(): Promise<LmsData> {
   if (!globalRef.__lmsLabData) globalRef.__lmsLabData = buildSeed()
   return globalRef.__lmsLabData
 }
@@ -45,59 +45,67 @@ function newId(prefix: string): string {
 // People
 // ---------------------------------------------------------------------------
 
-export function listTeachers(): Person[] {
-  return data().teachers
+export async function listTeachers(): Promise<Person[]> {
+  const d = await data()
+  return d.teachers
 }
 
-export function listStudents(): Person[] {
-  return data().students
+export async function listStudents(): Promise<Person[]> {
+  const d = await data()
+  return d.students
 }
 
-export function getPerson(id: string): Person | undefined {
-  return data().teachers.find((t) => t.id === id) ?? data().students.find((s) => s.id === id)
+export async function getPerson(id: string): Promise<Person | undefined> {
+  const d = await data()
+  return d.teachers.find((t) => t.id === id) ?? d.students.find((s) => s.id === id)
 }
 
 // ---------------------------------------------------------------------------
 // Courses & roster
 // ---------------------------------------------------------------------------
 
-export function getCourse(id: string): Course | undefined {
-  return data().courses.find((c) => c.id === id)
+export async function getCourse(id: string): Promise<Course | undefined> {
+  const d = await data()
+  return d.courses.find((c) => c.id === id)
 }
 
-export function listCoursesForTeacher(teacherId: string): Course[] {
-  return data().courses.filter((c) => c.teacherId === teacherId)
+export async function listCoursesForTeacher(teacherId: string): Promise<Course[]> {
+  const d = await data()
+  return d.courses.filter((c) => c.teacherId === teacherId)
 }
 
-export function listCoursesForStudent(studentId: string): Course[] {
-  const ids = new Set(data().enrollments.filter((e) => e.studentId === studentId).map((e) => e.courseId))
-  return data().courses.filter((c) => ids.has(c.id))
+export async function listCoursesForStudent(studentId: string): Promise<Course[]> {
+  const d = await data()
+  const ids = new Set(d.enrollments.filter((e) => e.studentId === studentId).map((e) => e.courseId))
+  return d.courses.filter((c) => ids.has(c.id))
 }
 
-export function listRoster(courseId: string): Person[] {
-  const ids = new Set(data().enrollments.filter((e) => e.courseId === courseId).map((e) => e.studentId))
-  return data().students.filter((s) => ids.has(s.id))
+export async function listRoster(courseId: string): Promise<Person[]> {
+  const d = await data()
+  const ids = new Set(d.enrollments.filter((e) => e.courseId === courseId).map((e) => e.studentId))
+  return d.students.filter((s) => ids.has(s.id))
 }
 
-export function isEnrolled(courseId: string, studentId: string): boolean {
-  return data().enrollments.some((e) => e.courseId === courseId && e.studentId === studentId)
+export async function isEnrolled(courseId: string, studentId: string): Promise<boolean> {
+  const d = await data()
+  return d.enrollments.some((e) => e.courseId === courseId && e.studentId === studentId)
 }
 
-export function saveGradeSettings(courseId: string, settings: GradeSettings): void {
-  const c = getCourse(courseId)
+export async function saveGradeSettings(courseId: string, settings: GradeSettings): Promise<void> {
+  const c = await getCourse(courseId)
   if (c) c.gradeSettings = settings
 }
 
-export function updateCourseSyllabus(courseId: string, syllabus: string): void {
-  const c = getCourse(courseId)
+export async function updateCourseSyllabus(courseId: string, syllabus: string): Promise<void> {
+  const c = await getCourse(courseId)
   if (c) c.syllabus = syllabus
 }
 
-export function updateCourse(
+export async function updateCourse(
   courseId: string,
   patch: Partial<Pick<Course, 'name' | 'code' | 'color' | 'term'>>,
-): void {
-  const c = getCourse(courseId)
+): Promise<void> {
+  const c = await getCourse(courseId)
   if (c) Object.assign(c, patch)
 }
 
@@ -105,14 +113,16 @@ export function updateCourse(
 // Assignments
 // ---------------------------------------------------------------------------
 
-export function listAssignments(courseId: string): Assignment[] {
-  return data()
+export async function listAssignments(courseId: string): Promise<Assignment[]> {
+  const d = await data()
+  return d
     .assignments.filter((a) => a.courseId === courseId)
     .sort((a, b) => a.position - b.position)
 }
 
-export function getAssignment(id: string): Assignment | undefined {
-  return data().assignments.find((a) => a.id === id)
+export async function getAssignment(id: string): Promise<Assignment | undefined> {
+  const d = await data()
+  return d.assignments.find((a) => a.id === id)
 }
 
 /** Published assignments still due, soonest first — computed here so callers
@@ -123,7 +133,7 @@ export function getAssignment(id: string): Assignment | undefined {
  * Lives here rather than in the component for the same reason the other clock
  * reads do: calling `new Date()` during render trips react-hooks/purity.
  */
-export function todayLabel(): string {
+export async function todayLabel(): Promise<string> {
   return new Date().toLocaleDateString('en-CA', {
     weekday: 'long',
     day: 'numeric',
@@ -131,9 +141,9 @@ export function todayLabel(): string {
   })
 }
 
-export function listUpcomingAssignments(courseId: string, limit: number): Assignment[] {
+export async function listUpcomingAssignments(courseId: string, limit: number): Promise<Assignment[]> {
   const now = Date.now()
-  return listAssignments(courseId)
+  return (await listAssignments(courseId))
     .filter((a) => a.published && a.dueAt != null && new Date(a.dueAt).getTime() >= now)
     .sort((a, b) => (a.dueAt as string).localeCompare(b.dueAt as string))
     .slice(0, limit)
@@ -153,17 +163,18 @@ export interface AgendaEntry {
 /** Published, dated assignments across the given courses that are due from the
  *  start of today onward, within `daysAhead`. Sorted soonest-first. The clock
  *  lives here so callers (server components) stay pure during render. */
-export function agendaForCourses(courseIds: string[], daysAhead = 21): AgendaEntry[] {
+export async function agendaForCourses(courseIds: string[], daysAhead = 21): Promise<AgendaEntry[]> {
+  const d = await data()
   const ids = new Set(courseIds)
   const now = new Date()
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
   const until = startOfToday + daysAhead * 24 * 60 * 60 * 1000
   const out: AgendaEntry[] = []
-  for (const a of data().assignments) {
+  for (const a of d.assignments) {
     if (!ids.has(a.courseId) || !a.published || a.dueAt == null) continue
     const t = new Date(a.dueAt).getTime()
     if (t < startOfToday || t > until) continue
-    const course = getCourse(a.courseId)
+    const course = await getCourse(a.courseId)
     if (!course) continue
     out.push({
       assignmentId: a.id,
@@ -180,18 +191,19 @@ export function agendaForCourses(courseIds: string[], daysAhead = 21): AgendaEnt
 }
 
 /** How many published, past-due assignments a student hasn't turned in. */
-export function studentMissingCount(studentId: string): number {
+export async function studentMissingCount(studentId: string): Promise<number> {
+  const d = await data()
   const courseIds = new Set(
-    data()
+    d
       .enrollments.filter((e) => e.studentId === studentId)
       .map((e) => e.courseId),
   )
   const now = Date.now()
   let n = 0
-  for (const a of data().assignments) {
+  for (const a of d.assignments) {
     if (!courseIds.has(a.courseId) || !a.published || a.dueAt == null) continue
     if (new Date(a.dueAt).getTime() >= now) continue
-    const sub = data().submissions.find((s) => s.assignmentId === a.id && s.studentId === studentId)
+    const sub = d.submissions.find((s) => s.assignmentId === a.id && s.studentId === studentId)
     if (!sub || sub.state === 'unsubmitted') n += 1
   }
   return n
@@ -205,13 +217,24 @@ export interface GradingQueueEntry {
 }
 
 /** Per-course count of submissions awaiting grading, for a teacher's courses. */
-export function teacherGradingQueue(teacherId: string): { entries: GradingQueueEntry[]; total: number } {
-  const entries: GradingQueueEntry[] = listCoursesForTeacher(teacherId).map((c) => {
-    const toGrade = data()
-      .assignments.filter((a) => a.courseId === c.id && a.published)
-      .reduce((n, a) => n + listSubmissionsForAssignment(a.id).filter((s) => s.state === 'submitted').length, 0)
-    return { courseId: c.id, courseName: c.name, courseColor: c.color, toGrade }
-  })
+export async function teacherGradingQueue(teacherId: string): Promise<{ entries: GradingQueueEntry[]; total: number }> {
+  const d = await data()
+  const entries: GradingQueueEntry[] = await Promise.all(
+    (await listCoursesForTeacher(teacherId)).map(async (c) => {
+      const published = d.assignments.filter((a) => a.courseId === c.id && a.published)
+      const counts = await Promise.all(
+        published.map(async (a) =>
+          (await listSubmissionsForAssignment(a.id)).filter((s) => s.state === 'submitted').length,
+        ),
+      )
+      return {
+        courseId: c.id,
+        courseName: c.name,
+        courseColor: c.color,
+        toGrade: counts.reduce((n, x) => n + x, 0),
+      }
+    }),
+  )
   return { entries, total: entries.reduce((n, e) => n + e.toGrade, 0) }
 }
 
@@ -222,34 +245,37 @@ export interface SearchResults {
 }
 
 /** Search courses, assignments, and people within the viewer's own courses. */
-export function search(query: string, viewerKind: 'teacher' | 'student', viewerId: string): SearchResults {
+export async function search(query: string, viewerKind: 'teacher' | 'student', viewerId: string): Promise<SearchResults> {
+  const d = await data()
   const q = query.trim().toLowerCase()
   const empty: SearchResults = { courses: [], assignments: [], people: [] }
   if (!q) return empty
-  const courses = viewerKind === 'teacher' ? listCoursesForTeacher(viewerId) : listCoursesForStudent(viewerId)
+  const courses = viewerKind === 'teacher' ? await listCoursesForTeacher(viewerId) : await listCoursesForStudent(viewerId)
   const courseIds = new Set(courses.map((c) => c.id))
 
   const courseHits = courses
     .filter((c) => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q))
     .map((c) => ({ id: c.id, name: c.name, code: c.code, color: c.color }))
 
-  const assignmentHits = data()
-    .assignments.filter((a) => courseIds.has(a.courseId) && (viewerKind === 'teacher' || a.published) && a.title.toLowerCase().includes(q))
-    .map((a) => {
-      const c = getCourse(a.courseId)
-      return { id: a.id, courseId: a.courseId, courseName: c?.name ?? '', title: a.title, isQuiz: a.submissionType === 'quiz' }
-    })
+  const assignmentHits = await Promise.all(
+    d.assignments
+      .filter((a) => courseIds.has(a.courseId) && (viewerKind === 'teacher' || a.published) && a.title.toLowerCase().includes(q))
+      .map(async (a) => {
+        const c = await getCourse(a.courseId)
+        return { id: a.id, courseId: a.courseId, courseName: c?.name ?? '', title: a.title, isQuiz: a.submissionType === 'quiz' }
+      }),
+  )
 
   // People: teachers of + students in the viewer's courses.
   const seen = new Set<string>()
   const people: SearchResults['people'] = []
   for (const c of courses) {
-    const teacher = getPerson(c.teacherId)
+    const teacher = await getPerson(c.teacherId)
     if (teacher && teacher.name.toLowerCase().includes(q) && !seen.has(`t${teacher.id}`)) {
       seen.add(`t${teacher.id}`)
       people.push({ id: teacher.id, name: teacher.name, role: 'Teacher', courseName: c.name })
     }
-    for (const s of listRoster(c.id)) {
+    for (const s of await listRoster(c.id)) {
       if (s.name.toLowerCase().includes(q) && !seen.has(`s${s.id}-${c.id}`)) {
         seen.add(`s${s.id}-${c.id}`)
         people.push({ id: s.id, name: s.name, role: 'Student', courseName: c.name })
@@ -272,8 +298,9 @@ export interface AssignmentInput {
   standardIds?: string[]
 }
 
-export function createAssignment(input: AssignmentInput): Assignment {
-  const siblings = listAssignments(input.courseId)
+export async function createAssignment(input: AssignmentInput): Promise<Assignment> {
+  const d = await data()
+  const siblings = await listAssignments(input.courseId)
   const assignment: Assignment = {
     id: newId('a'),
     courseId: input.courseId,
@@ -288,10 +315,10 @@ export function createAssignment(input: AssignmentInput): Assignment {
     standardIds: input.standardIds ?? [],
     position: siblings.length,
   }
-  data().assignments.push(assignment)
+  d.assignments.push(assignment)
   // Give every enrolled student an unsubmitted placeholder so rosters line up.
-  for (const s of listRoster(input.courseId)) {
-    data().submissions.push(emptySubmission(assignment.id, s.id))
+  for (const s of await listRoster(input.courseId)) {
+    d.submissions.push(await emptySubmission(assignment.id, s.id))
   }
   return assignment
 }
@@ -309,8 +336,9 @@ export interface QuizInput {
 }
 
 /** Create a quiz: an assignment (submissionType 'quiz') plus its questions. */
-export function createQuizAssignment(input: QuizInput): Assignment {
-  const siblings = listAssignments(input.courseId)
+export async function createQuizAssignment(input: QuizInput): Promise<Assignment> {
+  const d = await data()
+  const siblings = await listAssignments(input.courseId)
   const assignment: Assignment = {
     id: newId('a'),
     courseId: input.courseId,
@@ -325,22 +353,22 @@ export function createQuizAssignment(input: QuizInput): Assignment {
     standardIds: input.standardIds ?? [],
     position: siblings.length,
   }
-  data().assignments.push(assignment)
-  data().quizzes.push({ assignmentId: assignment.id, questions: input.questions })
-  for (const s of listRoster(input.courseId)) {
-    data().submissions.push(emptySubmission(assignment.id, s.id))
+  d.assignments.push(assignment)
+  d.quizzes.push({ assignmentId: assignment.id, questions: input.questions })
+  for (const s of await listRoster(input.courseId)) {
+    d.submissions.push(await emptySubmission(assignment.id, s.id))
   }
   return assignment
 }
 
-export function updateAssignment(id: string, patch: Partial<AssignmentInput>): void {
-  const a = getAssignment(id)
+export async function updateAssignment(id: string, patch: Partial<AssignmentInput>): Promise<void> {
+  const a = await getAssignment(id)
   if (!a) return
   Object.assign(a, patch)
 }
 
 /** Update a quiz's meta and replace its questions. */
-export function updateQuiz(
+export async function updateQuiz(
   assignmentId: string,
   input: {
     title: string
@@ -352,8 +380,8 @@ export function updateQuiz(
     questions: QuizQuestion[]
     standardIds?: string[]
   },
-): void {
-  updateAssignment(assignmentId, {
+): Promise<void> {
+  await updateAssignment(assignmentId, {
     title: input.title,
     instructions: input.instructions,
     points: input.points,
@@ -362,15 +390,15 @@ export function updateQuiz(
     published: input.published,
     standardIds: input.standardIds ?? [],
   })
-  const quiz = data().quizzes.find((q) => q.assignmentId === assignmentId)
+  const quiz = (await data()).quizzes.find((q) => q.assignmentId === assignmentId)
   if (quiz) quiz.questions = input.questions
-  else data().quizzes.push({ assignmentId, questions: input.questions })
+  else (await data()).quizzes.push({ assignmentId, questions: input.questions })
 }
 
 /** Delete an assignment and everything hanging off it (submissions, quiz,
  *  and any module items that referenced it). */
-export function deleteAssignment(id: string): void {
-  const d = data()
+export async function deleteAssignment(id: string): Promise<void> {
+  const d = await data()
   d.assignments = d.assignments.filter((a) => a.id !== id)
   d.submissions = d.submissions.filter((s) => s.assignmentId !== id)
   d.quizzes = d.quizzes.filter((q) => q.assignmentId !== id)
@@ -383,7 +411,7 @@ export function deleteAssignment(id: string): void {
 // Submissions
 // ---------------------------------------------------------------------------
 
-function emptySubmission(assignmentId: string, studentId: string): Submission {
+async function emptySubmission(assignmentId: string, studentId: string): Promise<Submission> {
   return {
     id: `sub-${assignmentId}-${studentId}`,
     assignmentId,
@@ -400,48 +428,50 @@ function emptySubmission(assignmentId: string, studentId: string): Submission {
   }
 }
 
-export function getSubmission(assignmentId: string, studentId: string): Submission {
-  const existing = data().submissions.find((s) => s.assignmentId === assignmentId && s.studentId === studentId)
+export async function getSubmission(assignmentId: string, studentId: string): Promise<Submission> {
+  const d = await data()
+  const existing = d.submissions.find((s) => s.assignmentId === assignmentId && s.studentId === studentId)
   if (existing) return existing
-  const created = emptySubmission(assignmentId, studentId)
-  data().submissions.push(created)
+  const created = await emptySubmission(assignmentId, studentId)
+  d.submissions.push(created)
   return created
 }
 
-export function listSubmissionsForAssignment(assignmentId: string): Submission[] {
-  return data().submissions.filter((s) => s.assignmentId === assignmentId)
+export async function listSubmissionsForAssignment(assignmentId: string): Promise<Submission[]> {
+  const d = await data()
+  return d.submissions.filter((s) => s.assignmentId === assignmentId)
 }
 
-export function turnInSubmission(
+export async function turnInSubmission(
   assignmentId: string,
   studentId: string,
   input: { text: string; attachments: { name: string; size: number }[] },
-): void {
-  const sub = getSubmission(assignmentId, studentId)
+): Promise<void> {
+  const sub = await getSubmission(assignmentId, studentId)
   sub.text = input.text
   if (input.attachments.length > 0) sub.attachments = input.attachments
   sub.state = 'submitted'
   sub.submittedAt = new Date().toISOString()
 }
 
-export function gradeSubmission(
+export async function gradeSubmission(
   assignmentId: string,
   studentId: string,
   input: { score: number | null; feedback: string },
-): void {
-  const sub = getSubmission(assignmentId, studentId)
+): Promise<void> {
+  const sub = await getSubmission(assignmentId, studentId)
   sub.score = input.score
   sub.feedback = input.feedback
   sub.state = input.score != null ? 'graded' : sub.submittedAt ? 'submitted' : 'unsubmitted'
 }
 
 /** Grade from a rubric: the score is the sum of the selected level points. */
-export function gradeSubmissionWithRubric(
+export async function gradeSubmissionWithRubric(
   assignmentId: string,
   studentId: string,
   input: { rubricScores: RubricScore[]; feedback: string },
-): void {
-  const sub = getSubmission(assignmentId, studentId)
+): Promise<void> {
+  const sub = await getSubmission(assignmentId, studentId)
   sub.rubricScores = input.rubricScores
   sub.score = input.rubricScores.reduce((n, r) => n + r.points, 0)
   sub.feedback = input.feedback
@@ -453,23 +483,23 @@ export function gradeSubmissionWithRubric(
 // ---------------------------------------------------------------------------
 
 /** Record proficiency judgements for one submission (replaces prior ones). */
-export function assessStandards(
+export async function assessStandards(
   assignmentId: string,
   studentId: string,
   assessments: StandardAssessment[],
-): void {
-  const sub = getSubmission(assignmentId, studentId)
+): Promise<void> {
+  const sub = await getSubmission(assignmentId, studentId)
   sub.standardAssessments = assessments
 }
 
 /** Every standard referenced by a course's published coursework, in catalogue order. */
-export function courseStandardIds(courseId: string): string[] {
+export async function courseStandardIds(courseId: string): Promise<string[]> {
   const seen = new Set<string>()
-  for (const a of listAssignments(courseId)) {
+  for (const a of await listAssignments(courseId)) {
     if (!a.published) continue
     for (const id of a.standardIds ?? []) seen.add(id)
   }
-  return listStandards().filter((s) => seen.has(s.id)).map((s) => s.id)
+  return (await listStandards()).filter((s) => seen.has(s.id)).map((s) => s.id)
 }
 
 export interface StandardMastery {
@@ -481,12 +511,13 @@ export interface StandardMastery {
 }
 
 /** A student's proficiency per standard across a course's coursework. */
-export function studentMastery(courseId: string, studentId: string): StandardMastery[] {
-  const assignments = listAssignments(courseId).filter((a) => a.published)
+export async function studentMastery(courseId: string, studentId: string): Promise<StandardMastery[]> {
+  const d = await data()
+  const assignments = (await listAssignments(courseId)).filter((a) => a.published)
   const byStandard = new Map<string, StandardMastery['history']>()
 
   for (const a of assignments) {
-    const sub = data().submissions.find((s) => s.assignmentId === a.id && s.studentId === studentId)
+    const sub = d.submissions.find((s) => s.assignmentId === a.id && s.studentId === studentId)
     if (!sub) continue
     for (const sa of sub.standardAssessments ?? []) {
       const arr = byStandard.get(sa.standardId) ?? []
@@ -495,7 +526,7 @@ export function studentMastery(courseId: string, studentId: string): StandardMas
     }
   }
 
-  return courseStandardIds(courseId).map((standardId) => {
+  return (await courseStandardIds(courseId)).map((standardId) => {
     const history = (byStandard.get(standardId) ?? []).sort((x, y) => (x.at ?? '').localeCompare(y.at ?? ''))
     return { standardId, latest: history.length > 0 ? history[history.length - 1].level : null, history }
   })
@@ -505,24 +536,25 @@ export function studentMastery(courseId: string, studentId: string): StandardMas
 // Quizzes (auto-graded)
 // ---------------------------------------------------------------------------
 
-export function getQuiz(assignmentId: string): Quiz | undefined {
-  return data().quizzes.find((q) => q.assignmentId === assignmentId)
+export async function getQuiz(assignmentId: string): Promise<Quiz | undefined> {
+  const d = await data()
+  return d.quizzes.find((q) => q.assignmentId === assignmentId)
 }
 
 /** Auto-grade a quiz on submit: score = (correct / total) × assignment points.
  *  Returns the earned score and the max, or null if there's no quiz. */
-export function submitQuiz(
+export async function submitQuiz(
   assignmentId: string,
   studentId: string,
   answers: number[],
-): { correct: number; total: number; score: number; points: number } | null {
-  const quiz = getQuiz(assignmentId)
-  const assignment = getAssignment(assignmentId)
+): Promise<{ correct: number; total: number; score: number; points: number } | null> {
+  const quiz = await getQuiz(assignmentId)
+  const assignment = await getAssignment(assignmentId)
   if (!quiz || !assignment) return null
   const total = quiz.questions.length
   const correct = quiz.questions.reduce((n, q, i) => n + (answers[i] === q.correctIndex ? 1 : 0), 0)
   const score = total > 0 ? Math.round((correct / total) * assignment.points) : 0
-  const sub = getSubmission(assignmentId, studentId)
+  const sub = await getSubmission(assignmentId, studentId)
   sub.answers = answers
   sub.score = score
   sub.state = 'graded'
@@ -535,12 +567,14 @@ export function submitQuiz(
 // Grades
 // ---------------------------------------------------------------------------
 
-export function courseGradeForStudent(courseId: string, studentId: string): CourseGrade {
-  const course = getCourse(courseId)
+export async function courseGradeForStudent(courseId: string, studentId: string): Promise<CourseGrade> {
+  const course = await getCourse(courseId)
   if (!course) return { pct: null, letter: null, categories: [] }
-  const items: ScoredItem[] = listAssignments(courseId)
-    .filter((a) => a.published)
-    .map((a) => ({ assignment: a, score: getSubmission(a.id, studentId).score }))
+  const items: ScoredItem[] = await Promise.all(
+    (await listAssignments(courseId))
+      .filter((a) => a.published)
+      .map(async (a) => ({ assignment: a, score: (await getSubmission(a.id, studentId)).score })),
+  )
   return computeCourseGrade(items, course.gradeSettings)
 }
 
@@ -548,49 +582,56 @@ export function courseGradeForStudent(courseId: string, studentId: string): Cour
 // Modules & pages
 // ---------------------------------------------------------------------------
 
-export function listModules(courseId: string): CourseModule[] {
-  return data()
+export async function listModules(courseId: string): Promise<CourseModule[]> {
+  const d = await data()
+  return d
     .modules.filter((m) => m.courseId === courseId)
     .sort((a, b) => a.position - b.position)
 }
 
-export function getPage(id: string): Page | undefined {
-  return data().pages.find((p) => p.id === id)
+export async function getPage(id: string): Promise<Page | undefined> {
+  const d = await data()
+  return d.pages.find((p) => p.id === id)
 }
 
-export function createModule(courseId: string, name: string): CourseModule {
+export async function createModule(courseId: string, name: string): Promise<CourseModule> {
+  const d = await data()
   const mod: CourseModule = {
     id: newId('m'),
     courseId,
     name,
-    position: listModules(courseId).length,
+    position: (await listModules(courseId)).length,
     published: true,
     items: [],
   }
-  data().modules.push(mod)
+  d.modules.push(mod)
   return mod
 }
 
-export function addModuleItem(moduleId: string, item: Omit<ModuleItem, 'id' | 'position'>): void {
-  const mod = data().modules.find((m) => m.id === moduleId)
+export async function addModuleItem(moduleId: string, item: Omit<ModuleItem, 'id' | 'position'>): Promise<void> {
+  const d = await data()
+  const mod = d.modules.find((m) => m.id === moduleId)
   if (!mod) return
   mod.items.push({ ...item, id: newId('mi'), position: mod.items.length })
 }
 
-export function deleteModule(moduleId: string): void {
-  data().modules = data().modules.filter((m) => m.id !== moduleId)
+export async function deleteModule(moduleId: string): Promise<void> {
+  const d = await data()
+  d.modules = d.modules.filter((m) => m.id !== moduleId)
 }
 
-export function deleteModuleItem(moduleId: string, itemId: string): void {
-  const mod = data().modules.find((m) => m.id === moduleId)
+export async function deleteModuleItem(moduleId: string, itemId: string): Promise<void> {
+  const d = await data()
+  const mod = d.modules.find((m) => m.id === moduleId)
   if (mod) mod.items = mod.items.filter((it) => it.id !== itemId)
 }
 
 type Direction = 'up' | 'down'
 
 /** Swap an item with its neighbor and renumber positions 0..n. */
-export function moveModuleItem(moduleId: string, itemId: string, dir: Direction): void {
-  const mod = data().modules.find((m) => m.id === moduleId)
+export async function moveModuleItem(moduleId: string, itemId: string, dir: Direction): Promise<void> {
+  const d = await data()
+  const mod = d.modules.find((m) => m.id === moduleId)
   if (!mod) return
   const items = [...mod.items].sort((a, b) => a.position - b.position)
   const idx = items.findIndex((it) => it.id === itemId)
@@ -601,8 +642,9 @@ export function moveModuleItem(moduleId: string, itemId: string, dir: Direction)
 }
 
 /** Swap a module with its neighbor within its course and renumber. */
-export function moveModule(courseId: string, moduleId: string, dir: Direction): void {
-  const mods = data()
+export async function moveModule(courseId: string, moduleId: string, dir: Direction): Promise<void> {
+  const d = await data()
+  const mods = d
     .modules.filter((m) => m.courseId === courseId)
     .sort((a, b) => a.position - b.position)
   const idx = mods.findIndex((m) => m.id === moduleId)
@@ -616,26 +658,30 @@ export function moveModule(courseId: string, moduleId: string, dir: Direction): 
 // Rubrics
 // ---------------------------------------------------------------------------
 
-export function getRubric(id: string): Rubric | undefined {
-  return data().rubrics.find((r) => r.id === id)
+export async function getRubric(id: string): Promise<Rubric | undefined> {
+  const d = await data()
+  return d.rubrics.find((r) => r.id === id)
 }
 
-export function listRubrics(courseId: string): Rubric[] {
-  return data().rubrics.filter((r) => r.courseId === courseId)
+export async function listRubrics(courseId: string): Promise<Rubric[]> {
+  const d = await data()
+  return d.rubrics.filter((r) => r.courseId === courseId)
 }
 
 // ---------------------------------------------------------------------------
 // Announcements & discussions
 // ---------------------------------------------------------------------------
 
-export function listAnnouncements(courseId: string): Announcement[] {
-  return data()
+export async function listAnnouncements(courseId: string): Promise<Announcement[]> {
+  const d = await data()
+  return d
     .announcements.filter((a) => a.courseId === courseId)
     .sort((a, b) => b.postedAt.localeCompare(a.postedAt))
 }
 
-export function createAnnouncement(input: { courseId: string; authorId: string; title: string; body: string }): void {
-  data().announcements.push({
+export async function createAnnouncement(input: { courseId: string; authorId: string; title: string; body: string }): Promise<void> {
+  const d = await data()
+  d.announcements.push({
     id: newId('an'),
     courseId: input.courseId,
     authorId: input.authorId,
@@ -645,27 +691,32 @@ export function createAnnouncement(input: { courseId: string; authorId: string; 
   })
 }
 
-export function deleteAnnouncement(id: string): void {
-  data().announcements = data().announcements.filter((a) => a.id !== id)
+export async function deleteAnnouncement(id: string): Promise<void> {
+  const d = await data()
+  d.announcements = d.announcements.filter((a) => a.id !== id)
 }
 
-export function listDiscussionTopics(courseId: string): DiscussionTopic[] {
-  return data()
+export async function listDiscussionTopics(courseId: string): Promise<DiscussionTopic[]> {
+  const d = await data()
+  return d
     .discussionTopics.filter((t) => t.courseId === courseId)
     .sort((a, b) => b.postedAt.localeCompare(a.postedAt))
 }
 
-export function getDiscussionTopic(id: string): DiscussionTopic | undefined {
-  return data().discussionTopics.find((t) => t.id === id)
+export async function getDiscussionTopic(id: string): Promise<DiscussionTopic | undefined> {
+  const d = await data()
+  return d.discussionTopics.find((t) => t.id === id)
 }
 
-export function listDiscussionPosts(topicId: string): DiscussionPost[] {
-  return data()
+export async function listDiscussionPosts(topicId: string): Promise<DiscussionPost[]> {
+  const d = await data()
+  return d
     .discussionPosts.filter((p) => p.topicId === topicId)
     .sort((a, b) => a.postedAt.localeCompare(b.postedAt))
 }
 
-export function createDiscussionTopic(input: { courseId: string; authorId: string; title: string; body: string }): DiscussionTopic {
+export async function createDiscussionTopic(input: { courseId: string; authorId: string; title: string; body: string }): Promise<DiscussionTopic> {
+  const d = await data()
   const topic: DiscussionTopic = {
     id: newId('dt'),
     courseId: input.courseId,
@@ -674,17 +725,19 @@ export function createDiscussionTopic(input: { courseId: string; authorId: strin
     body: input.body,
     postedAt: new Date().toISOString(),
   }
-  data().discussionTopics.push(topic)
+  d.discussionTopics.push(topic)
   return topic
 }
 
-export function deleteDiscussionTopic(id: string): void {
-  data().discussionTopics = data().discussionTopics.filter((t) => t.id !== id)
-  data().discussionPosts = data().discussionPosts.filter((p) => p.topicId !== id)
+export async function deleteDiscussionTopic(id: string): Promise<void> {
+  const d = await data()
+  d.discussionTopics = d.discussionTopics.filter((t) => t.id !== id)
+  d.discussionPosts = d.discussionPosts.filter((p) => p.topicId !== id)
 }
 
-export function addDiscussionPost(input: { topicId: string; authorId: string; body: string; parentId: string | null }): void {
-  data().discussionPosts.push({
+export async function addDiscussionPost(input: { topicId: string; authorId: string; body: string; parentId: string | null }): Promise<void> {
+  const d = await data()
+  d.discussionPosts.push({
     id: newId('dp'),
     topicId: input.topicId,
     authorId: input.authorId,

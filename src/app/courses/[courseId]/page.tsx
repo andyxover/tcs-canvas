@@ -17,8 +17,8 @@ export const dynamic = 'force-dynamic'
 
 export default async function CourseHomePage({ params }: { params: Promise<{ courseId: string }> }) {
   const { course, viewer, isTeacher } = await courseCtx(params)
-  const teacher = getPerson(course.teacherId)
-  const announcements = listAnnouncements(course.id).slice(0, 2)
+  const teacher = await getPerson(course.teacherId)
+  const announcements = (await listAnnouncements(course.id)).slice(0, 2)
 
   return (
     <div className="lms-stack">
@@ -77,13 +77,16 @@ function SectionTitle({ children, href }: { children: React.ReactNode; href?: st
 }
 
 async function TeacherOverview({ courseId }: { courseId: string }) {
-  const roster = listRoster(courseId)
-  const assignments = listAssignments(courseId)
+  const roster = await listRoster(courseId)
+  const assignments = await listAssignments(courseId)
   const published = assignments.filter((a) => a.published)
-  const toGrade = published.reduce((n, a) => {
-    const submitted = roster.filter((s) => getSubmission(a.id, s.id).state === 'submitted').length
-    return n + submitted
-  }, 0)
+  const submittedCounts = await Promise.all(
+    published.map(async (a) => {
+      const states = await Promise.all(roster.map((s) => getSubmission(a.id, s.id)))
+      return states.filter((sub) => sub.state === 'submitted').length
+    }),
+  )
+  const toGrade = submittedCounts.reduce((n, x) => n + x, 0)
 
   const stats = [
     { label: 'Students', value: roster.length },
@@ -107,8 +110,8 @@ async function TeacherOverview({ courseId }: { courseId: string }) {
 }
 
 async function StudentOverview({ courseId, studentId, showGrade }: { courseId: string; studentId: string; showGrade: boolean }) {
-  const grade = courseGradeForStudent(courseId, studentId)
-  const upcoming = listUpcomingAssignments(courseId, 4)
+  const grade = await courseGradeForStudent(courseId, studentId)
+  const upcoming = await listUpcomingAssignments(courseId, 4)
 
   return (
     <>
@@ -137,8 +140,8 @@ async function StudentOverview({ courseId, studentId, showGrade }: { courseId: s
           <div className="lms-empty">Nothing due right now. 🎉</div>
         ) : (
           <div className="lms-list">
-            {upcoming.map((a) => {
-              const missing = isMissing(a, getSubmission(a.id, studentId))
+            {await Promise.all(upcoming.map(async (a) => {
+              const missing = isMissing(a, await getSubmission(a.id, studentId))
               return (
                 <HoverLink key={a.id} href={`/courses/${courseId}/assignments/${a.id}`} className="lms-row">
                   <div className="lms-row__icon" aria-hidden>
@@ -153,7 +156,7 @@ async function StudentOverview({ courseId, studentId, showGrade }: { courseId: s
                   {missing && <Badge tone="danger">Missing</Badge>}
                 </HoverLink>
               )
-            })}
+            }))}
           </div>
         )}
       </section>

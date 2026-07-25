@@ -11,7 +11,7 @@ function str(fd: FormData, key: string): string {
 }
 
 export async function saveCourseSettingsAction(courseId: string, fd: FormData): Promise<void> {
-  updateCourse(courseId, {
+  await updateCourse(courseId, {
     name: str(fd, 'name') || 'Untitled course',
     code: str(fd, 'code'),
     term: str(fd, 'term'),
@@ -29,7 +29,7 @@ export async function saveCourseSettingsAction(courseId: string, fd: FormData): 
 
   const calcRaw = str(fd, 'calc')
   const calc: GradeCalc = calcRaw === 'total' || calcRaw === 'none' ? calcRaw : 'weighted'
-  saveGradeSettings(courseId, {
+  await saveGradeSettings(courseId, {
     calc,
     showTotalsToStudents: fd.get('showTotals') === 'on',
     categories: categories.length > 0 ? categories : [{ name: 'Assignments', weight: 100 }],

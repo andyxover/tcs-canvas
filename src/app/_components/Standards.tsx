@@ -15,7 +15,7 @@ export function ProficiencyChip({ level, size = 'md' }: { level: ProficiencyLeve
 }
 
 /** Read-only list of the standards attached to a piece of coursework. */
-export function StandardList({
+export async function StandardList({
   standardIds,
   levels,
 }: {
@@ -23,7 +23,7 @@ export function StandardList({
   /** Optional map of standardId → assessed level, to show alongside. */
   levels?: Record<string, ProficiencyLevel>
 }) {
-  const standards = standardIds.map(getStandard).filter((s) => s != null)
+  const standards = (await Promise.all(standardIds.map((id) => getStandard(id)))).filter((s) => s != null)
   if (standards.length === 0) return null
 
   return (

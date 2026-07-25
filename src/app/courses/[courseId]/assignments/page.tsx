@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function AssignmentsPage({ params }: { params: Promise<{ courseId: string }> }) {
   const { course, viewer, isTeacher } = await courseCtx(params)
-  const assignments = listAssignments(course.id).filter((a) => isTeacher || a.published)
+  const assignments = (await listAssignments(course.id)).filter((a) => isTeacher || a.published)
 
   return (
     <div className="lms-stack">
@@ -77,9 +77,9 @@ export default async function AssignmentsPage({ params }: { params: Promise<{ co
   )
 }
 
-function TeacherStatus({ assignment, courseId }: { assignment: Assignment; courseId: string }) {
-  const roster = listRoster(courseId)
-  const subs = listSubmissionsForAssignment(assignment.id)
+async function TeacherStatus({ assignment, courseId }: { assignment: Assignment; courseId: string }) {
+  const roster = await listRoster(courseId)
+  const subs = await listSubmissionsForAssignment(assignment.id)
   const graded = subs.filter((s) => s.state === 'graded').length
   const submitted = subs.filter((s) => s.state === 'submitted').length
   return (
@@ -92,8 +92,8 @@ function TeacherStatus({ assignment, courseId }: { assignment: Assignment; cours
   )
 }
 
-function StudentStatus({ assignment, studentId }: { assignment: Assignment; studentId: string }) {
-  const sub = getSubmission(assignment.id, studentId)
+async function StudentStatus({ assignment, studentId }: { assignment: Assignment; studentId: string }) {
+  const sub = await getSubmission(assignment.id, studentId)
   if (sub.state === 'graded') {
     return (
       <Badge tone="ok">

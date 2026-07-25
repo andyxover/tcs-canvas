@@ -26,15 +26,15 @@ export default async function AssignmentDetailPage({
   params: Promise<{ courseId: string; assignmentId: string }>
 }) {
   const { courseId, assignmentId } = await params
-  const course = getCourse(courseId)
+  const course = await getCourse(courseId)
   if (!course) notFound()
   const viewer = await getViewer()
   const isTeacher = viewer.kind === 'teacher'
-  const assignment = getAssignment(assignmentId)
+  const assignment = await getAssignment(assignmentId)
   if (!assignment || assignment.courseId !== course.id) notFound()
   const isQuiz = assignment.submissionType === 'quiz'
-  const quiz = isQuiz ? getQuiz(assignment.id) : undefined
-  const rubric = assignment.rubricId ? getRubric(assignment.rubricId) : undefined
+  const quiz = isQuiz ? await getQuiz(assignment.id) : undefined
+  const rubric = assignment.rubricId ? await getRubric(assignment.rubricId) : undefined
 
   return (
     <div className="lms-stack" style={{ maxWidth: 760 }}>
@@ -94,7 +94,7 @@ export default async function AssignmentDetailPage({
           </p>
           <StandardList
             standardIds={assignment.standardIds}
-            levels={isTeacher ? undefined : studentLevels(assignment.id, viewer.person.id)}
+            levels={isTeacher ? undefined : await studentLevels(assignment.id, viewer.person.id)}
           />
         </section>
       )}
@@ -135,8 +135,8 @@ export default async function AssignmentDetailPage({
 }
 
 /** Map of standardId → level for one student's submission, for inline display. */
-function studentLevels(assignmentId: string, studentId: string): Record<string, ProficiencyLevel> {
-  const sub = getSubmission(assignmentId, studentId)
+async function studentLevels(assignmentId: string, studentId: string): Promise<Record<string, ProficiencyLevel>> {
+  const sub = await getSubmission(assignmentId, studentId)
   const out: Record<string, ProficiencyLevel> = {}
   for (const sa of sub.standardAssessments ?? []) out[sa.standardId] = sa.level
   return out
@@ -144,9 +144,9 @@ function studentLevels(assignmentId: string, studentId: string): Record<string, 
 
 // ---- Regular assignments -------------------------------------------------
 
-function TeacherSubmissionSummary({ courseId, assignmentId, points }: { courseId: string; assignmentId: string; points: number }) {
-  const roster = listRoster(courseId)
-  const subs = listSubmissionsForAssignment(assignmentId)
+async function TeacherSubmissionSummary({ courseId, assignmentId, points }: { courseId: string; assignmentId: string; points: number }) {
+  const roster = await listRoster(courseId)
+  const subs = await listSubmissionsForAssignment(assignmentId)
   const graded = subs.filter((s) => s.state === 'graded')
   const submitted = subs.filter((s) => s.state === 'submitted')
   const avg =
@@ -173,12 +173,12 @@ function TeacherSubmissionSummary({ courseId, assignmentId, points }: { courseId
   )
 }
 
-function StudentSubmitPanel({ courseId, assignmentId, studentId }: { courseId: string; assignmentId: string; studentId: string }) {
-  const assignment = getAssignment(assignmentId)
+async function StudentSubmitPanel({ courseId, assignmentId, studentId }: { courseId: string; assignmentId: string; studentId: string }) {
+  const assignment = await getAssignment(assignmentId)
   if (!assignment) return null
-  const sub = getSubmission(assignmentId, studentId)
+  const sub = await getSubmission(assignmentId, studentId)
   const action = turnInAction.bind(null, courseId, assignmentId, studentId)
-  const rubric = assignment.rubricId ? getRubric(assignment.rubricId) : undefined
+  const rubric = assignment.rubricId ? await getRubric(assignment.rubricId) : undefined
   const late = isLate(assignment, sub)
   const missing = isMissing(assignment, sub)
 
@@ -266,9 +266,9 @@ function StudentSubmitPanel({ courseId, assignmentId, studentId }: { courseId: s
 
 // ---- Quizzes -------------------------------------------------------------
 
-function QuizTeacherView({ courseId, quiz, points }: { courseId: string; quiz: Quiz; points: number }) {
-  const roster = listRoster(courseId)
-  const subs = listSubmissionsForAssignment(quiz.assignmentId).filter((s) => s.state === 'graded')
+async function QuizTeacherView({ courseId, quiz, points }: { courseId: string; quiz: Quiz; points: number }) {
+  const roster = await listRoster(courseId)
+  const subs = (await listSubmissionsForAssignment(quiz.assignmentId)).filter((s) => s.state === 'graded')
   const avg = subs.length > 0 ? Math.round((subs.reduce((n, s) => n + (s.score ?? 0), 0) / subs.length / points) * 100) : null
 
   return (
@@ -312,8 +312,8 @@ function QuizTeacherView({ courseId, quiz, points }: { courseId: string; quiz: Q
   )
 }
 
-function QuizStudentView({ courseId, quiz, points, studentId }: { courseId: string; quiz: Quiz; points: number; studentId: string }) {
-  const sub = getSubmission(quiz.assignmentId, studentId)
+async function QuizStudentView({ courseId, quiz, points, studentId }: { courseId: string; quiz: Quiz; points: number; studentId: string }) {
+  const sub = await getSubmission(quiz.assignmentId, studentId)
   const taken = sub.state === 'graded'
 
   if (taken) {

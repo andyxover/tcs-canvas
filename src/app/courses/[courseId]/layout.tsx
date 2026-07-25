@@ -13,7 +13,7 @@ export default async function CourseLayout({
   params: Promise<{ courseId: string }>
 }) {
   const { courseId } = await params
-  const course = getCourse(courseId)
+  const course = await getCourse(courseId)
   if (!course) notFound()
   const viewer = await getViewer()
 

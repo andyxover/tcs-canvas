@@ -72,7 +72,7 @@ export async function confirmImportAction(_prev: ImportState, fd: FormData): Pro
   if (standards.length === 0) {
     return { status: 'error', message: 'Nothing to import — re-check the file.' }
   }
-  const result = addStandards(standards)
+  const result = await addStandards(standards)
   revalidatePath('/standards', 'page')
   revalidatePath('/courses', 'layout')
   return {
@@ -84,7 +84,7 @@ export async function confirmImportAction(_prev: ImportState, fd: FormData): Pro
 
 /** Drop every imported standard, restoring the shipped catalogue. */
 export async function resetStandardsAction(): Promise<void> {
-  resetStandards()
+  await resetStandards()
   revalidatePath('/standards', 'page')
   revalidatePath('/courses', 'layout')
 }

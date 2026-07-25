@@ -25,10 +25,10 @@ export async function getViewer(): Promise<Viewer> {
   const store = await cookies()
   const parsed = parse(store.get(COOKIE)?.value)
   if (parsed) {
-    const person = getPerson(parsed.id)
+    const person = await getPerson(parsed.id)
     if (person) return { kind: parsed.kind, person }
   }
-  const fallback = listTeachers()[0]
+  const fallback = (await listTeachers())[0]
   return { kind: 'teacher', person: fallback }
 }
 

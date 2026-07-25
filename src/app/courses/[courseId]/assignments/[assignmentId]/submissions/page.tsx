@@ -17,14 +17,14 @@ export default async function SubmissionsPage({
   params: Promise<{ courseId: string; assignmentId: string }>
 }) {
   const { courseId, assignmentId } = await params
-  const course = getCourse(courseId)
+  const course = await getCourse(courseId)
   if (!course) notFound()
   const viewer = await getViewer()
   if (viewer.kind !== 'teacher') notFound()
-  const assignment = getAssignment(assignmentId)
+  const assignment = await getAssignment(assignmentId)
   if (!assignment || assignment.courseId !== courseId) notFound()
-  const roster = listRoster(courseId)
-  const rubric = assignment.rubricId ? getRubric(assignment.rubricId) : undefined
+  const roster = await listRoster(courseId)
+  const rubric = assignment.rubricId ? await getRubric(assignment.rubricId) : undefined
   const standardIds = assignment.standardIds ?? []
 
   return (
@@ -39,8 +39,8 @@ export default async function SubmissionsPage({
       </div>
 
       <div className="lms-stack">
-        {roster.map((student) => {
-          const sub = getSubmission(assignmentId, student.id)
+        {await Promise.all(roster.map(async (student) => {
+          const sub = await getSubmission(assignmentId, student.id)
           const action = gradeAction.bind(null, courseId, assignmentId, student.id)
           const late = isLate(assignment, sub)
           return (
@@ -120,21 +120,26 @@ export default async function SubmissionsPage({
               </form>
             </div>
           )
-        })}
+        }))}
       </div>
     </div>
   )
 }
 
-function StandardAssessor({ standardIds, sub }: { standardIds: string[]; sub: Submission }) {
+async function StandardAssessor({ standardIds, sub }: { standardIds: string[]; sub: Submission }) {
   const chosen = new Map(sub.standardAssessments?.map((a) => [a.standardId, a.level]) ?? [])
+  const stdById = new Map(
+    (await Promise.all(standardIds.map((id) => getStandard(id))))
+      .filter((x) => x != null)
+      .map((x) => [x.id, x] as const),
+  )
   return (
     <div className="lms-stack" style={{ gap: 10 }}>
       <div className="lms-muted" style={{ fontSize: 12.5 }}>
         Proficiency against the BC learning standards this work evidences.
       </div>
       {standardIds.map((sid) => {
-        const std = getStandard(sid)
+        const std = stdById.get(sid)
         if (!std) return null
         return (
           <div key={sid}>

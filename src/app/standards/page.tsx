@@ -12,8 +12,8 @@ export default async function StandardsCataloguePage() {
   const viewer = await getViewer()
   if (viewer.kind !== 'teacher') notFound()
 
-  const all = listStandards()
-  const curricula = listCurricula()
+  const all = await listStandards()
+  const curricula = await listCurricula()
   const importedCount = all.filter((s) => isImported(s.id)).length
 
   const byKind = (['big-idea', 'curricular-competency', 'content', 'core-competency'] as const).map((k) => ({

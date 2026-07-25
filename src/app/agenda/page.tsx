@@ -24,8 +24,8 @@ const DAY_KEY = new Intl.DateTimeFormat('en-CA', {
 export default async function AgendaPage() {
   const viewer = await getViewer()
   const isTeacher = viewer.kind === 'teacher'
-  const courses = isTeacher ? listCoursesForTeacher(viewer.person.id) : listCoursesForStudent(viewer.person.id)
-  const entries = agendaForCourses(courses.map((c) => c.id))
+  const courses = isTeacher ? await listCoursesForTeacher(viewer.person.id) : await listCoursesForStudent(viewer.person.id)
+  const entries = await agendaForCourses(courses.map((c) => c.id))
 
   // Group entries by calendar day (Taipei).
   const groups = new Map<string, AgendaEntry[]>()
@@ -70,9 +70,9 @@ export default async function AgendaPage() {
   )
 }
 
-function AgendaRow({ entry, isTeacher, studentId }: { entry: AgendaEntry; isTeacher: boolean; studentId: string }) {
-  const assignment = getAssignment(entry.assignmentId)
-  const sub = !isTeacher ? getSubmission(entry.assignmentId, studentId) : undefined
+async function AgendaRow({ entry, isTeacher, studentId }: { entry: AgendaEntry; isTeacher: boolean; studentId: string }) {
+  const assignment = await getAssignment(entry.assignmentId)
+  const sub = !isTeacher ? await getSubmission(entry.assignmentId, studentId) : undefined
   const missing = assignment && sub ? isMissing(assignment, sub) : false
 
   return (

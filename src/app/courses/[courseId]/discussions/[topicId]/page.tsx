@@ -15,12 +15,12 @@ export default async function TopicPage({
   params: Promise<{ courseId: string; topicId: string }>
 }) {
   const { courseId, topicId } = await params
-  const course = getCourse(courseId)
-  const topic = getDiscussionTopic(topicId)
+  const course = await getCourse(courseId)
+  const topic = await getDiscussionTopic(topicId)
   if (!course || !topic || topic.courseId !== courseId) notFound()
   const viewer = await getViewer()
-  const author = getPerson(topic.authorId)
-  const posts = listDiscussionPosts(topicId)
+  const author = await getPerson(topic.authorId)
+  const posts = await listDiscussionPosts(topicId)
   const roots = posts.filter((p) => !p.parentId)
 
   return (
@@ -71,7 +71,7 @@ export default async function TopicPage({
   )
 }
 
-function PostThread({
+async function PostThread({
   post,
   replies,
   courseId,
@@ -84,7 +84,7 @@ function PostThread({
   topicId: string
   viewerId: string
 }) {
-  const author = getPerson(post.authorId)
+  const author = await getPerson(post.authorId)
   return (
     <div className="lms-card lms-card--pad">
       <div className="lms-flex" style={{ marginBottom: 6 }}>
@@ -97,8 +97,8 @@ function PostThread({
 
       {replies.length > 0 && (
         <div style={{ borderLeft: '2px solid var(--lms-line)', paddingLeft: 14, marginBottom: 10 }} className="lms-stack">
-          {replies.map((r) => {
-            const ra = getPerson(r.authorId)
+          {await Promise.all(replies.map(async (r) => {
+            const ra = await getPerson(r.authorId)
             return (
               <div key={r.id}>
                 <div className="lms-row__meta" style={{ marginBottom: 2 }}>
@@ -107,7 +107,7 @@ function PostThread({
                 <p style={{ margin: 0 }}>{r.body}</p>
               </div>
             )
-          })}
+          }))}
         </div>
       )}
 

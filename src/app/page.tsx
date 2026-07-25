@@ -12,14 +12,14 @@ export default async function DashboardPage() {
   const viewer = await getViewer()
   const isTeacher = viewer.kind === 'teacher'
   const courses = isTeacher
-    ? listCoursesForTeacher(viewer.person.id)
-    : listCoursesForStudent(viewer.person.id)
+    ? await listCoursesForTeacher(viewer.person.id)
+    : await listCoursesForStudent(viewer.person.id)
 
   return (
     <main className="lms-page">
       <div className="lms-header">
         <div>
-          <span className="lms-eyebrow">{todayLabel()}</span>
+          <span className="lms-eyebrow">{await todayLabel()}</span>
           <h1 className="lms-display">
             {isTeacher ? `Good day, ${viewer.person.name}` : `Hi, ${viewer.person.name.split(' ')[0]}`}
           </h1>
@@ -63,8 +63,8 @@ export default async function DashboardPage() {
 
 // ---- Teacher: needs-grading queue --------------------------------------
 
-function GradingQueue({ teacherId }: { teacherId: string }) {
-  const { entries, total } = teacherGradingQueue(teacherId)
+async function GradingQueue({ teacherId }: { teacherId: string }) {
+  const { entries, total } = await teacherGradingQueue(teacherId)
   const withWork = entries.filter((e) => e.toGrade > 0)
 
   return (
@@ -99,25 +99,28 @@ function GradingQueue({ teacherId }: { teacherId: string }) {
 
 // ---- Student: to-do ----------------------------------------------------
 
-function StudentTodo({ studentId, courseIds }: { studentId: string; courseIds: string[] }) {
-  const upcoming = agendaForCourses(courseIds, 14)
-    .map((e) => {
-      const sub = getSubmission(e.assignmentId, studentId)
-      const a = getAssignment(e.assignmentId)
-      const status =
-        sub.state === 'graded'
-          ? 'graded'
-          : sub.state === 'submitted'
-            ? 'submitted'
-            : a && isMissing(a, sub)
-              ? 'missing'
-              : 'todo'
-      return { ...e, status }
-    })
+async function StudentTodo({ studentId, courseIds }: { studentId: string; courseIds: string[] }) {
+  const upcoming = (
+    await Promise.all(
+      (await agendaForCourses(courseIds, 14)).map(async (e) => {
+        const sub = await getSubmission(e.assignmentId, studentId)
+        const a = await getAssignment(e.assignmentId)
+        const status =
+          sub.state === 'graded'
+            ? 'graded'
+            : sub.state === 'submitted'
+              ? 'submitted'
+              : a && isMissing(a, sub)
+                ? 'missing'
+                : 'todo'
+        return { ...e, status }
+      }),
+    )
+  )
     .filter((x) => x.status !== 'graded')
     .slice(0, 6)
 
-  const missing = studentMissingCount(studentId)
+  const missing = await studentMissingCount(studentId)
   const dueSoon = upcoming.filter((x) => x.status === 'todo' || x.status === 'missing').length
 
   return (
@@ -174,8 +177,8 @@ function TodoTag({ status }: { status: string }) {
 
 // ---- Course cards ------------------------------------------------------
 
-function TeacherCourseCard({ course }: { course: Course }) {
-  const roster = listRoster(course.id)
+async function TeacherCourseCard({ course }: { course: Course }) {
+  const roster = await listRoster(course.id)
   return (
     <Link href={`/courses/${course.id}`} className="lms-minicard">
       <span aria-hidden className="lms-minicard__swatch" style={{ background: course.color }} />
@@ -189,9 +192,9 @@ function TeacherCourseCard({ course }: { course: Course }) {
   )
 }
 
-function StudentCourseCard({ course, studentId }: { course: Course; studentId: string }) {
-  const teacher = getPerson(course.teacherId)
-  const grade = courseGradeForStudent(course.id, studentId)
+async function StudentCourseCard({ course, studentId }: { course: Course; studentId: string }) {
+  const teacher = await getPerson(course.teacherId)
+  const grade = await courseGradeForStudent(course.id, studentId)
   const showGrade = course.gradeSettings.showTotalsToStudents && grade.pct != null
   return (
     <Link href={`/courses/${course.id}`} className="lms-minicard">

@@ -158,9 +158,32 @@ const MATH_9: BcStandard[] = [
 /** Standards shipped with the app (Grade 9 + the Graduation Program). */
 export const BUILT_IN_STANDARDS: BcStandard[] = [...SCIENCE_9, ...MATH_9, ...BC_STANDARDS_1012, ...CORE]
 
-// The live catalogue is mutable so schools can import the official BC data on
-// top of what ships. It lives on globalThis for the same reason the data store
-// does: survive dev hot-reloads, reset on a full restart.
+/**
+ * The catalogue behind a swappable source.
+ *
+ * Everything that reads or writes standards goes through this one interface, so
+ * the in-repo registry can be replaced by tcs-lms's existing `curriculum_standards`
+ * atlas without touching a single call site. That matters because the portal
+ * already owns a curriculum table and a /curriculum surface — shipping a second,
+ * parallel catalogue there would mean two things to import into and keep in sync.
+ *
+ * Reads are async for the same reason the data store's are: a database-backed
+ * implementation cannot be synchronous, and it is far cheaper to settle that
+ * shape here, against a fixture we can verify in seconds, than to discover every
+ * call site later against a live schema.
+ */
+export interface StandardsSource {
+  all(): Promise<BcStandard[]>
+  upsert(incoming: BcStandard[]): Promise<{ added: number; updated: number }>
+  reset(): Promise<void>
+  /** Sync on purpose: a pure classification, used inside render loops. A DB-backed
+      source can hold the built-in id set in memory. */
+  isBuiltIn(id: string): boolean
+}
+
+// Default source: a mutable in-memory registry so schools can import the official
+// BC data on top of what ships. Lives on globalThis for the same reason the data
+// store does — survive dev hot-reloads, reset on a full restart.
 const registry = globalThis as unknown as { __bcStandards?: BcStandard[] }
 
 function catalogue(): BcStandard[] {
@@ -168,47 +191,70 @@ function catalogue(): BcStandard[] {
   return registry.__bcStandards
 }
 
+const BUILT_IN_IDS = new Set(BUILT_IN_STANDARDS.map((s) => s.id))
+
+export const inMemoryStandards: StandardsSource = {
+  async all() {
+    return catalogue()
+  },
+  async upsert(incoming) {
+    const cat = catalogue()
+    let added = 0
+    let updated = 0
+    for (const std of incoming) {
+      const i = cat.findIndex((s) => s.id === std.id)
+      if (i >= 0) {
+        cat[i] = std
+        updated += 1
+      } else {
+        cat.push(std)
+        added += 1
+      }
+    }
+    return { added, updated }
+  },
+  async reset() {
+    registry.__bcStandards = [...BUILT_IN_STANDARDS]
+  },
+  isBuiltIn(id) {
+    return BUILT_IN_IDS.has(id)
+  },
+}
+
+let source: StandardsSource = inMemoryStandards
+
+/** Swap the backing store — call once at startup when porting to the portal. */
+export function setStandardsSource(next: StandardsSource): void {
+  source = next
+}
+
 /** Every standard currently in the catalogue (built-in + imported). */
-export function listStandards(): BcStandard[] {
-  return catalogue()
+export async function listStandards(): Promise<BcStandard[]> {
+  return source.all()
 }
 
 /** True when a standard came from an import rather than shipping with the app. */
 export function isImported(id: string): boolean {
-  return !BUILT_IN_STANDARDS.some((s) => s.id === id)
+  return !source.isBuiltIn(id)
 }
 
 /**
  * Merge standards into the catalogue. Matching ids are replaced (re-importing a
  * corrected file updates in place rather than duplicating), new ones appended.
- * Returns what changed.
  */
-export function addStandards(incoming: BcStandard[]): { added: number; updated: number } {
-  const cat = catalogue()
-  let added = 0
-  let updated = 0
-  for (const std of incoming) {
-    const i = cat.findIndex((s) => s.id === std.id)
-    if (i >= 0) {
-      cat[i] = std
-      updated += 1
-    } else {
-      cat.push(std)
-      added += 1
-    }
-  }
-  return { added, updated }
+export async function addStandards(incoming: BcStandard[]): Promise<{ added: number; updated: number }> {
+  return source.upsert(incoming)
 }
 
 /** Remove every imported standard, restoring the shipped catalogue. */
-export function resetStandards(): void {
-  registry.__bcStandards = [...BUILT_IN_STANDARDS]
+export async function resetStandards(): Promise<void> {
+  await source.reset()
 }
 
 /** Distinct subject + grade pairs in the catalogue, for course settings. */
-export function listCurricula(): { subject: string; grade: string; count: number }[] {
+export async function listCurricula(): Promise<{ subject: string; grade: string; count: number }[]> {
   const map = new Map<string, { subject: string; grade: string; count: number }>()
-  for (const s of catalogue()) {
+  for (const s of await source.all()) {
     if (s.kind === 'core-competency') continue
     const key = `${s.subject}||${s.grade}`
     const cur = map.get(key)
@@ -227,13 +273,16 @@ export const KIND_META: Record<StandardKind, { label: string; plural: string; ic
   'core-competency': { label: 'Core Competency', plural: 'Core Competencies', icon: '★' },
 }
 
-export function getStandard(id: string): BcStandard | undefined {
-  return catalogue().find((s) => s.id === id)
+export async function getStandard(id: string): Promise<BcStandard | undefined> {
+  return (await source.all()).find((s) => s.id === id)
 }
 
 /** Standards available to a course: its own subject+grade, plus Core Competencies. */
-export function standardsFor(subject: string | undefined, grade: string | undefined): BcStandard[] {
-  const cat = catalogue()
+export async function standardsFor(
+  subject: string | undefined,
+  grade: string | undefined,
+): Promise<BcStandard[]> {
+  const cat = await source.all()
   if (!subject || !grade) return cat.filter((s) => s.kind === 'core-competency')
   return cat.filter((s) => (s.subject === subject && s.grade === grade) || s.kind === 'core-competency')
 }

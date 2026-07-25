@@ -11,8 +11,8 @@ export default async function ContentPage({
   params: Promise<{ courseId: string; pageId: string }>
 }) {
   const { courseId, pageId } = await params
-  const course = getCourse(courseId)
-  const page = getPage(pageId)
+  const course = await getCourse(courseId)
+  const page = await getPage(pageId)
   if (!course || !page || page.courseId !== courseId) notFound()
 
   return (

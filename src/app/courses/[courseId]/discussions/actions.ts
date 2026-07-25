@@ -13,13 +13,13 @@ export async function createTopicAction(courseId: string, authorId: string, fd: 
   const title = str(fd, 'title') || 'Untitled topic'
   // Trusted sandbox HTML from the rich-text editor (rendered via RichText).
   const body = str(fd, 'body')
-  const topic = createDiscussionTopic({ courseId, authorId, title, body })
+  const topic = await createDiscussionTopic({ courseId, authorId, title, body })
   revalidatePath(`/courses/${courseId}/discussions`, 'page')
   redirect(`/courses/${courseId}/discussions/${topic.id}`)
 }
 
 export async function deleteTopicAction(courseId: string, topicId: string): Promise<void> {
-  deleteDiscussionTopic(topicId)
+  await deleteDiscussionTopic(topicId)
   revalidatePath(`/courses/${courseId}/discussions`, 'page')
   redirect(`/courses/${courseId}/discussions`)
 }
@@ -27,6 +27,6 @@ export async function deleteTopicAction(courseId: string, topicId: string): Prom
 export async function addPostAction(courseId: string, topicId: string, authorId: string, fd: FormData): Promise<void> {
   const body = str(fd, 'body')
   const parentId = str(fd, 'parentId') || null
-  if (body) addDiscussionPost({ topicId, authorId, body, parentId })
+  if (body) await addDiscussionPost({ topicId, authorId, body, parentId })
   revalidatePath(`/courses/${courseId}/discussions/${topicId}`, 'page')
 }

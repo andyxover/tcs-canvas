@@ -6,8 +6,8 @@ export const dynamic = 'force-dynamic'
 
 export default async function PeoplePage({ params }: { params: Promise<{ courseId: string }> }) {
   const { course } = await courseCtx(params)
-  const teacher = getPerson(course.teacherId)
-  const roster = listRoster(course.id)
+  const teacher = await getPerson(course.teacherId)
+  const roster = await listRoster(course.id)
 
   return (
     <div className="lms-stack">

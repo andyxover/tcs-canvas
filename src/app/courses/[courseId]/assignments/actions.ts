@@ -43,7 +43,7 @@ function toIso(local: string): string | null {
 export async function createAssignmentAction(courseId: string, fd: FormData): Promise<void> {
   const title = str(fd, 'title') || 'Untitled assignment'
   const points = Math.max(0, Math.min(1000, Number(str(fd, 'points')) || 0))
-  const created = createAssignment({
+  const created = await createAssignment({
     courseId,
     title,
     instructions: str(fd, 'instructions'),
@@ -86,7 +86,7 @@ function parseQuizQuestions(fd: FormData): QuizQuestion[] {
 export async function createQuizAction(courseId: string, fd: FormData): Promise<void> {
   const questions = parseQuizQuestions(fd)
   const points = Math.max(0, Math.min(1000, Number(str(fd, 'points')) || questions.length))
-  const created = createQuizAssignment({
+  const created = await createQuizAssignment({
     courseId,
     title: str(fd, 'title') || 'Untitled quiz',
     instructions: str(fd, 'instructions'),
@@ -104,7 +104,7 @@ export async function createQuizAction(courseId: string, fd: FormData): Promise<
 export async function updateQuizAction(courseId: string, assignmentId: string, fd: FormData): Promise<void> {
   const questions = parseQuizQuestions(fd)
   const points = Math.max(0, Math.min(1000, Number(str(fd, 'points')) || questions.length))
-  updateQuiz(assignmentId, {
+  await updateQuiz(assignmentId, {
     title: str(fd, 'title') || 'Untitled quiz',
     instructions: str(fd, 'instructions'),
     points,
@@ -120,7 +120,7 @@ export async function updateQuizAction(courseId: string, assignmentId: string, f
 
 export async function updateAssignmentAction(courseId: string, assignmentId: string, fd: FormData): Promise<void> {
   const points = Math.max(0, Math.min(1000, Number(str(fd, 'points')) || 0))
-  updateAssignment(assignmentId, {
+  await updateAssignment(assignmentId, {
     title: str(fd, 'title') || 'Untitled assignment',
     instructions: str(fd, 'instructions'),
     points,
@@ -135,7 +135,7 @@ export async function updateAssignmentAction(courseId: string, assignmentId: str
 }
 
 export async function deleteAssignmentAction(courseId: string, assignmentId: string): Promise<void> {
-  deleteAssignment(assignmentId)
+  await deleteAssignment(assignmentId)
   revalidatePath(`/courses/${courseId}/assignments`, 'page')
   redirect(`/courses/${courseId}/assignments`)
 }
@@ -143,7 +143,7 @@ export async function deleteAssignmentAction(courseId: string, assignmentId: str
 export async function turnInAction(courseId: string, assignmentId: string, studentId: string, fd: FormData): Promise<void> {
   const text = str(fd, 'text')
   const fileName = str(fd, 'fileName')
-  turnInSubmission(assignmentId, studentId, {
+  await turnInSubmission(assignmentId, studentId, {
     text,
     attachments: fileName ? [{ name: fileName, size: 152000 }] : [],
   })
@@ -151,9 +151,9 @@ export async function turnInAction(courseId: string, assignmentId: string, stude
 }
 
 export async function gradeAction(courseId: string, assignmentId: string, studentId: string, fd: FormData): Promise<void> {
-  const assignment = getAssignment(assignmentId)
+  const assignment = await getAssignment(assignmentId)
   const feedback = str(fd, 'feedback')
-  const rubric = assignment?.rubricId ? getRubric(assignment.rubricId) : undefined
+  const rubric = assignment?.rubricId ? await getRubric(assignment.rubricId) : undefined
 
   // BC proficiency judgements, one per attached standard (blank = not assessed).
   const assessments: StandardAssessment[] = []
@@ -164,7 +164,7 @@ export async function gradeAction(courseId: string, assignmentId: string, studen
     }
   }
   if ((assignment?.standardIds ?? []).length > 0) {
-    assessStandards(assignmentId, studentId, assessments)
+    await assessStandards(assignmentId, studentId, assessments)
   }
 
   // Rubric path: score is the sum of the selected level points per criterion.
@@ -178,7 +178,7 @@ export async function gradeAction(courseId: string, assignmentId: string, studen
       }
     }
     if (rubricScores.length > 0) {
-      gradeSubmissionWithRubric(assignmentId, studentId, { rubricScores, feedback })
+      await gradeSubmissionWithRubric(assignmentId, studentId, { rubricScores, feedback })
       revalidatePath(`/courses/${courseId}/assignments/${assignmentId}/submissions`, 'page')
       revalidatePath(`/courses/${courseId}/assignments/${assignmentId}`, 'page')
       return
@@ -192,13 +192,13 @@ export async function gradeAction(courseId: string, assignmentId: string, studen
     const n = Number(raw)
     if (!Number.isNaN(n)) score = Math.max(0, Math.min(assignment?.points ?? n, n))
   }
-  gradeSubmission(assignmentId, studentId, { score, feedback })
+  await gradeSubmission(assignmentId, studentId, { score, feedback })
   revalidatePath(`/courses/${courseId}/assignments/${assignmentId}/submissions`, 'page')
   revalidatePath(`/courses/${courseId}/assignments/${assignmentId}`, 'page')
 }
 
 export async function takeQuizAction(courseId: string, assignmentId: string, studentId: string, fd: FormData): Promise<void> {
-  const quiz = getQuiz(assignmentId)
+  const quiz = await getQuiz(assignmentId)
   if (!quiz) return
   // One answer per question, read positionally (q0, q1, …). Unanswered = -1.
   const answers = quiz.questions.map((_, i) => {
@@ -206,6 +206,6 @@ export async function takeQuizAction(courseId: string, assignmentId: string, stu
     const n = Number(raw)
     return raw !== '' && !Number.isNaN(n) ? n : -1
   })
-  submitQuiz(assignmentId, studentId, answers)
+  await submitQuiz(assignmentId, studentId, answers)
   revalidatePath(`/courses/${courseId}/assignments/${assignmentId}`, 'page')
 }

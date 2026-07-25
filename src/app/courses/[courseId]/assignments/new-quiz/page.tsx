@@ -15,7 +15,7 @@ export default async function NewQuizPage({ params }: { params: Promise<{ course
   if (!isTeacher) notFound()
   const action = createQuizAction.bind(null, course.id)
   const categories = course.gradeSettings.categories
-  const standards = standardsFor(course.curriculum?.subject, course.curriculum?.grade)
+  const standards = await standardsFor(course.curriculum?.subject, course.curriculum?.grade)
 
   return (
     <div className="lms-stack" style={{ maxWidth: 720 }}>

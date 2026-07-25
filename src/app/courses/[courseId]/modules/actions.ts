@@ -19,27 +19,27 @@ function str(fd: FormData, key: string): string {
 
 export async function createModuleAction(courseId: string, fd: FormData): Promise<void> {
   const name = str(fd, 'name')
-  if (name) createModule(courseId, name)
+  if (name) await createModule(courseId, name)
   revalidatePath(`/courses/${courseId}/modules`, 'page')
 }
 
 export async function deleteModuleAction(courseId: string, moduleId: string): Promise<void> {
-  deleteModule(moduleId)
+  await deleteModule(moduleId)
   revalidatePath(`/courses/${courseId}/modules`, 'page')
 }
 
 export async function deleteModuleItemAction(courseId: string, moduleId: string, itemId: string): Promise<void> {
-  deleteModuleItem(moduleId, itemId)
+  await deleteModuleItem(moduleId, itemId)
   revalidatePath(`/courses/${courseId}/modules`, 'page')
 }
 
 export async function moveModuleAction(courseId: string, moduleId: string, dir: 'up' | 'down'): Promise<void> {
-  moveModule(courseId, moduleId, dir)
+  await moveModule(courseId, moduleId, dir)
   revalidatePath(`/courses/${courseId}/modules`, 'page')
 }
 
 export async function moveModuleItemAction(courseId: string, moduleId: string, itemId: string, dir: 'up' | 'down'): Promise<void> {
-  moveModuleItem(moduleId, itemId, dir)
+  await moveModuleItem(moduleId, itemId, dir)
   revalidatePath(`/courses/${courseId}/modules`, 'page')
 }
 
@@ -47,17 +47,17 @@ export async function addModuleItemAction(courseId: string, moduleId: string, fd
   const kind = (str(fd, 'kind') || 'link') as ModuleItemKind
   if (kind === 'assignment') {
     const refId = str(fd, 'assignmentId')
-    const a = refId ? getAssignment(refId) : undefined
-    if (a) addModuleItem(moduleId, { kind, title: a.title, refId: a.id, url: null })
+    const a = refId ? await getAssignment(refId) : undefined
+    if (a) await addModuleItem(moduleId, { kind, title: a.title, refId: a.id, url: null })
   } else if (kind === 'link') {
     const url = str(fd, 'url')
     const title = str(fd, 'title') || url
-    if (url) addModuleItem(moduleId, { kind, title, refId: null, url })
+    if (url) await addModuleItem(moduleId, { kind, title, refId: null, url })
   } else if (kind === 'file') {
     // Real file-picker upload; we record name + size only (no content stored).
     const file = fd.get('file')
     if (file instanceof File && file.size > 0) {
-      addModuleItem(moduleId, { kind, title: file.name, refId: null, url: null, fileSize: file.size })
+      await addModuleItem(moduleId, { kind, title: file.name, refId: null, url: null, fileSize: file.size })
     }
   }
   revalidatePath(`/courses/${courseId}/modules`, 'page')

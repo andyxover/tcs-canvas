@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function DiscussionsPage({ params }: { params: Promise<{ courseId: string }> }) {
   const { course, viewer } = await courseCtx(params)
-  const topics = listDiscussionTopics(course.id)
+  const topics = await listDiscussionTopics(course.id)
 
   return (
     <div className="lms-stack">
@@ -31,9 +31,9 @@ export default async function DiscussionsPage({ params }: { params: Promise<{ co
         <EmptyState icon="💬" title="No discussions yet" hint="Start the first one above." />
       ) : (
         <div className="lms-list">
-          {topics.map((t) => {
-            const author = getPerson(t.authorId)
-            const replies = listDiscussionPosts(t.id).length
+          {await Promise.all(topics.map(async (t) => {
+            const author = await getPerson(t.authorId)
+            const replies = (await listDiscussionPosts(t.id)).length
             return (
               <HoverLink key={t.id} href={`/courses/${course.id}/discussions/${t.id}`} className="lms-row">
                 {author && <Avatar person={author} size={34} />}
@@ -45,7 +45,7 @@ export default async function DiscussionsPage({ params }: { params: Promise<{ co
                 </div>
               </HoverLink>
             )
-          })}
+          }))}
         </div>
       )}
     </div>

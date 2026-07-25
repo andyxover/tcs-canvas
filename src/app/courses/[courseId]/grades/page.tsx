@@ -18,9 +18,9 @@ export default async function GradesPage({ params }: { params: Promise<{ courseI
   return isTeacher ? <TeacherGradebook course={course} /> : <StudentGrades course={course} studentId={viewer.person.id} />
 }
 
-function TeacherGradebook({ course }: { course: Course }) {
-  const roster = listRoster(course.id)
-  const assignments = listAssignments(course.id).filter((a) => a.published)
+async function TeacherGradebook({ course }: { course: Course }) {
+  const roster = await listRoster(course.id)
+  const assignments = (await listAssignments(course.id)).filter((a) => a.published)
 
   if (assignments.length === 0) {
     return (
@@ -55,8 +55,8 @@ function TeacherGradebook({ course }: { course: Course }) {
             </tr>
           </thead>
           <tbody>
-            {roster.map((student) => {
-              const grade = courseGradeForStudent(course.id, student.id)
+            {await Promise.all(roster.map(async (student) => {
+              const grade = await courseGradeForStudent(course.id, student.id)
               return (
                 <tr key={student.id}>
                   <td className="lms-table__student">
@@ -76,7 +76,7 @@ function TeacherGradebook({ course }: { course: Course }) {
                   </td>
                 </tr>
               )
-            })}
+            }))}
           </tbody>
         </table>
       </div>
@@ -84,17 +84,17 @@ function TeacherGradebook({ course }: { course: Course }) {
   )
 }
 
-function GradeCell({ assignment, studentId }: { assignment: Assignment; studentId: string }) {
-  const sub = getSubmission(assignment.id, studentId)
+async function GradeCell({ assignment, studentId }: { assignment: Assignment; studentId: string }) {
+  const sub = await getSubmission(assignment.id, studentId)
   if (sub.score != null) return <>{sub.score}</>
   if (isMissing(assignment, sub)) return <span className="lms-cell-missing">M</span>
   if (sub.state === 'submitted') return <span className="lms-cell-empty">•</span>
   return <span className="lms-cell-empty">—</span>
 }
 
-function StudentGrades({ course, studentId }: { course: Course; studentId: string }) {
-  const assignments = listAssignments(course.id).filter((a) => a.published)
-  const grade = courseGradeForStudent(course.id, studentId)
+async function StudentGrades({ course, studentId }: { course: Course; studentId: string }) {
+  const assignments = (await listAssignments(course.id)).filter((a) => a.published)
+  const grade = await courseGradeForStudent(course.id, studentId)
   const showTotals = course.gradeSettings.showTotalsToStudents
 
   return (
@@ -135,8 +135,8 @@ function StudentGrades({ course, studentId }: { course: Course; studentId: strin
             </tr>
           </thead>
           <tbody>
-            {assignments.map((a) => {
-              const sub = getSubmission(a.id, studentId)
+            {await Promise.all(assignments.map(async (a) => {
+              const sub = await getSubmission(a.id, studentId)
               const pct = sub.score != null ? Math.round((sub.score / a.points) * 100) : null
               return (
                 <tr key={a.id}>
@@ -158,7 +158,7 @@ function StudentGrades({ course, studentId }: { course: Course; studentId: strin
                   <td className="lms-table__num">{pct != null ? `${pct}% ${letterForPct(pct) ?? ''}` : '—'}</td>
                 </tr>
               )
-            })}
+            }))}
           </tbody>
         </table>
       </div>

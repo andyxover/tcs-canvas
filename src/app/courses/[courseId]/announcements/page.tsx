@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function AnnouncementsPage({ params }: { params: Promise<{ courseId: string }> }) {
   const { course, viewer, isTeacher } = await courseCtx(params)
-  const announcements = listAnnouncements(course.id)
+  const announcements = await listAnnouncements(course.id)
 
   return (
     <div className="lms-stack">
@@ -32,8 +32,8 @@ export default async function AnnouncementsPage({ params }: { params: Promise<{ 
         <EmptyState icon="📣" title="No announcements" hint="Nothing posted yet." />
       ) : (
         <div className="lms-stack">
-          {announcements.map((a) => {
-            const author = getPerson(a.authorId)
+          {await Promise.all(announcements.map(async (a) => {
+            const author = await getPerson(a.authorId)
             return (
               <div key={a.id} className="lms-card lms-card--pad">
                 <div className="lms-between" style={{ marginBottom: 8, alignItems: 'flex-start' }}>
@@ -53,7 +53,7 @@ export default async function AnnouncementsPage({ params }: { params: Promise<{ 
                 <RichText html={a.body} />
               </div>
             )
-          })}
+          }))}
         </div>
       )}
     </div>

@@ -16,16 +16,16 @@ export default async function EditAssignmentPage({
   params: Promise<{ courseId: string; assignmentId: string }>
 }) {
   const { courseId, assignmentId } = await params
-  const course = getCourse(courseId)
+  const course = await getCourse(courseId)
   if (!course) notFound()
   const viewer = await getViewer()
   if (viewer.kind !== 'teacher') notFound()
-  const a = getAssignment(assignmentId)
+  const a = await getAssignment(assignmentId)
   if (!a || a.courseId !== courseId) notFound()
 
   const isQuiz = a.submissionType === 'quiz'
-  const rubrics = listRubrics(course.id)
-  const standards = standardsFor(course.curriculum?.subject, course.curriculum?.grade)
+  const rubrics = await listRubrics(course.id)
+  const standards = await standardsFor(course.curriculum?.subject, course.curriculum?.grade)
   const action = updateAssignmentAction.bind(null, course.id, a.id)
   const dueLocal = a.dueAt ? a.dueAt.slice(0, 16) : ''
 

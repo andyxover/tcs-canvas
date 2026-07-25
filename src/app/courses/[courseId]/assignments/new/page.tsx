@@ -13,8 +13,8 @@ export const dynamic = 'force-dynamic'
 export default async function NewAssignmentPage({ params }: { params: Promise<{ courseId: string }> }) {
   const { course, isTeacher } = await courseCtx(params)
   if (!isTeacher) notFound()
-  const rubrics = listRubrics(course.id)
-  const standards = standardsFor(course.curriculum?.subject, course.curriculum?.grade)
+  const rubrics = await listRubrics(course.id)
+  const standards = await standardsFor(course.curriculum?.subject, course.curriculum?.grade)
   const action = createAssignmentAction.bind(null, course.id)
 
   return (

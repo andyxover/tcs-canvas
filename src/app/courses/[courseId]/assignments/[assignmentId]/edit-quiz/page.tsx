@@ -17,17 +17,17 @@ export default async function EditQuizPage({
   params: Promise<{ courseId: string; assignmentId: string }>
 }) {
   const { courseId, assignmentId } = await params
-  const course = getCourse(courseId)
+  const course = await getCourse(courseId)
   if (!course) notFound()
   const viewer = await getViewer()
   if (viewer.kind !== 'teacher') notFound()
-  const a = getAssignment(assignmentId)
-  const quiz = getQuiz(assignmentId)
+  const a = await getAssignment(assignmentId)
+  const quiz = await getQuiz(assignmentId)
   if (!a || a.courseId !== courseId || a.submissionType !== 'quiz' || !quiz) notFound()
 
   const action = updateQuizAction.bind(null, course.id, a.id)
   const categories = course.gradeSettings.categories
-  const standards = standardsFor(course.curriculum?.subject, course.curriculum?.grade)
+  const standards = await standardsFor(course.curriculum?.subject, course.curriculum?.grade)
   const dueLocal = a.dueAt ? a.dueAt.slice(0, 16) : ''
 
   return (
