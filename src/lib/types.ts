@@ -74,6 +74,14 @@ export interface Assignment {
   rubricId: string | null
   /** BC learning standards this coursework assesses (ids into the BC catalogue). */
   standardIds: string[]
+  /**
+   * Whether students may ask for formative feedback on a draft of this task.
+   *
+   * Per-assignment and teacher-owned on purpose: a task assessing independent
+   * writing, or a take-home meant to be unaided, has to be able to switch this
+   * off. A single school-wide setting would be the wrong granularity.
+   */
+  draftCoach: boolean
   /** Display ordering within the Assignments list. */
   position: number
 }
@@ -230,6 +238,23 @@ export interface ReportComment {
   updatedAt: string
 }
 
+/**
+ * A record that a student asked for feedback on a draft.
+ *
+ * The draft and the feedback text are deliberately NOT stored. What the teacher
+ * needs to know is that the tool was used and how often — enough that this is not
+ * a black box running between a student and a model inside their classroom, and
+ * not so much that it becomes surveillance of a student's unfinished thinking.
+ */
+export interface DraftCoachRequest {
+  assignmentId: string
+  studentId: string
+  at: string
+  coachId: string
+  /** Draft length when they asked — shows whether they asked early or late. */
+  words: number
+}
+
 export interface LmsData {
   teachers: Person[]
   students: Person[]
@@ -245,4 +270,5 @@ export interface LmsData {
   discussionTopics: DiscussionTopic[]
   discussionPosts: DiscussionPost[]
   reportComments: ReportComment[]
+  coachRequests: DraftCoachRequest[]
 }

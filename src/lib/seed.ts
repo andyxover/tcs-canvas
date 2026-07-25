@@ -229,6 +229,9 @@ function buildAssignments(): Assignment[] {
       submissionType: 'online' as const,
       rubricId: s.rubricId ?? null,
       standardIds: s.standardIds ?? [],
+      // On for written work so the sandbox demonstrates it. A real deployment
+      // should default this off and let teachers opt each task in.
+      draftCoach: true,
       position: i,
     }))
   const sci9 = make('c-sci9', sci9Assignments)
@@ -246,6 +249,8 @@ function buildAssignments(): Assignment[] {
     submissionType: 'quiz' as const,
     rubricId: null,
     standardIds: q.standardIds ?? [],
+    // A quiz has no draft to coach — it is answered and auto-graded on submit.
+    draftCoach: false,
     position: sci9.length + i,
   }))
   return [...sci9, ...sci9Q, ...math9, ...chem11]
@@ -421,5 +426,6 @@ export function buildSeed(): LmsData {
     // Teachers write these; nothing is seeded so the first draft is always
     // generated from real evidence rather than from a fixture.
     reportComments: [],
+    coachRequests: [],
   }
 }

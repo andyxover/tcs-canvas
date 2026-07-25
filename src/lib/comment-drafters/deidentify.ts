@@ -1,4 +1,5 @@
 import type { CommentEvidence } from '../report-comments'
+import { scrubNames } from '../ai/scrub'
 
 /**
  * What actually leaves the building.
@@ -17,21 +18,6 @@ import type { CommentEvidence } from '../report-comments'
  * course roster could re-identify from the pattern of standards. It is
  * data minimisation: nothing is sent that isn't needed to write the sentence.
  */
-
-/** Scrub every name token from free text a teacher may have typed. */
-export function scrubNames(text: string, names: string[]): string {
-  let out = text
-  for (const n of names) {
-    for (const token of n.split(/\s+/).filter((t) => t.length > 2)) {
-      out = out.replace(new RegExp(`\\b${escapeRegExp(token)}\\b`, 'gi'), '[student]')
-    }
-  }
-  return out
-}
-
-function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
 
 export interface DeidentifiedPacket {
   subject: string
@@ -75,3 +61,5 @@ export function deidentify(ev: CommentEvidence, rosterNames: string[]): Deidenti
     teacherFeedback: ev.teacherFeedback.map((f) => clean(f.feedback)),
   }
 }
+
+export { scrubNames }

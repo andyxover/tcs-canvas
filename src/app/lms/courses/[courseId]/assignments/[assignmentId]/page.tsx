@@ -6,6 +6,7 @@ import {
   getQuiz,
   getRubric,
   getSubmission,
+  listCoachRequests,
   listRoster,
   listSubmissionsForAssignment,
 } from '@/lib/store'
@@ -17,6 +18,8 @@ import { StandardList } from '../../../../../_components/Standards'
 import { deleteAssignmentAction, takeQuizAction, turnInAction } from '../actions'
 import { Badge, RichText, fmtDay, fmtRelative } from '../../../../../_components/ui'
 import { SubmitButton } from '../../../../../_components/interactive'
+import { llmConfigured } from '@/lib/ai/anthropic'
+import { DraftCoach } from './DraftCoach'
 
 export const dynamic = 'force-dynamic'
 
@@ -152,10 +155,19 @@ async function TeacherSubmissionSummary({ courseId, assignmentId, points }: { co
   const avg =
     graded.length > 0 ? Math.round((graded.reduce((n, s) => n + (s.score ?? 0), 0) / graded.length / points) * 100) : null
 
+  // Not surveillance — no draft and no feedback text is stored. Just enough that
+  // a teacher knows the tool is in use in their classroom and who is leaning on it.
+  const coachRequests = await listCoachRequests(assignmentId)
+  const askers = new Set(coachRequests.map((r) => r.studentId)).size
+
   const stats = [
     { label: 'Turned in', value: `${submitted.length + graded.length}/${roster.length}` },
     { label: 'To grade', value: submitted.length },
     { label: 'Class average', value: avg != null ? `${avg}%` : '—' },
+    {
+      label: askers === 1 ? 'Student asked for draft feedback' : 'Students asked for draft feedback',
+      value: `${askers}/${roster.length}`,
+    },
   ]
 
   return (
@@ -259,6 +271,17 @@ async function StudentSubmitPanel({ courseId, assignmentId, studentId }: { cours
             {sub.state === 'submitted' ? 'Resubmit' : 'Turn in'}
           </SubmitButton>
         </form>
+      )}
+
+      {/* Feedback is for work still in progress; once it is graded the teacher
+          has spoken and a second opinion would only muddy that. */}
+      {assignment.draftCoach && sub.state !== 'graded' && (
+        <DraftCoach
+          courseId={courseId}
+          assignmentId={assignmentId}
+          studentId={studentId}
+          modelConfigured={llmConfigured()}
+        />
       )}
     </section>
   )

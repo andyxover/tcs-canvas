@@ -101,6 +101,17 @@ export default async function NewAssignmentPage({ params }: { params: Promise<{ 
           </label>
         </div>
 
+        <div className="lms-field">
+          <label className="lms-flex" style={{ cursor: 'pointer' }}>
+            <input type="checkbox" name="draftCoach" defaultChecked />
+            <span>Let students ask for feedback on a draft</span>
+          </label>
+          <p className="lms-muted" style={{ fontSize: 12.5, margin: '4px 0 0' }}>
+            Feedback is aligned to this task&apos;s standards and never gives a mark or writes any of the work. Turn it
+            off for anything assessing independent, unaided writing.
+          </p>
+        </div>
+
         <div className="lms-flex" style={{ marginTop: 8 }}>
           <SubmitButton className="lms-btn lms-btn--primary">
             Create assignment

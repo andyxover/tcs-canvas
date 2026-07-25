@@ -1,5 +1,6 @@
 import type { CommentDraft, CommentEvidence, CommentDrafter } from '../report-comments'
 import { deidentify, type DeidentifiedPacket } from './deidentify'
+import { DraftError, askModel, llmConfigured, llmModel } from '../ai/anthropic'
 
 /**
  * Anthropic-backed drafter.
@@ -13,31 +14,14 @@ import { deidentify, type DeidentifiedPacket } from './deidentify'
  *      locally, after the response comes back.
  *   2. A failure here never breaks the page. Report writing cannot depend on a
  *      third party being up.
+ *
+ * Transport, timeouts and error mapping live in ../ai/anthropic — this file is
+ * only the prompt and the de-identification boundary.
  */
 
-/** Carries a message already written for a teacher to read. */
-export class DraftError extends Error {}
-
-function humanError(status: number): string {
-  if (status === 401 || status === 403)
-    return 'The configured API key was rejected. Check ANTHROPIC_API_KEY in the environment settings.'
-  if (status === 429) return 'The provider is rate limiting requests right now. Try again in a moment.'
-  if (status === 400) return 'The provider rejected the request. This is a bug on our side, not yours.'
-  if (status >= 500) return 'The provider is having trouble. Try again shortly.'
-  return `The drafting request failed (status ${status}).`
-}
-
-const API = 'https://api.anthropic.com/v1/messages'
-const DEFAULT_MODEL = 'claude-sonnet-5'
-const TIMEOUT_MS = 25_000
-
-export function llmConfigured(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY)
-}
-
-export function llmModel(): string {
-  return process.env.ANTHROPIC_COMMENT_MODEL || DEFAULT_MODEL
-}
+// Re-exported because callers (server actions, the reports page) import these
+// from the drafter they are using rather than reaching for the transport.
+export { llmConfigured, llmModel, DraftError }
 
 const SYSTEM = `You draft term report-card comments for a British Columbia school.
 
@@ -70,53 +54,6 @@ Rules:
 - Plain language a parent can read. No jargon beyond the standard codes.
 - Output the paragraph only. No preamble, no headings, no quotation marks.`
 
-async function callAnthropic(packet: DeidentifiedPacket): Promise<string> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
-  try {
-    const res = await fetch(API, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY as string,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: llmModel(),
-        max_tokens: 400,
-        system: SYSTEM,
-        messages: [{ role: 'user', content: JSON.stringify(packet, null, 2) }],
-      }),
-    })
-    if (!res.ok) {
-      const detail = await res.text().catch(() => '')
-      // Full detail to the server log for whoever is debugging; a teacher gets a
-      // sentence they can act on. Showing them raw provider JSON is noise at
-      // best and leaks request identifiers at worst.
-      console.error(`[report-comments] Anthropic API ${res.status}: ${detail.slice(0, 500)}`)
-      throw new DraftError(humanError(res.status))
-    }
-    const json = (await res.json()) as { content?: { type: string; text?: string }[] }
-    const text = (json.content ?? [])
-      .filter((c) => c.type === 'text')
-      .map((c) => c.text ?? '')
-      .join('')
-      .trim()
-    if (!text) throw new DraftError('The provider returned an empty draft. Try again.')
-    return text
-  } catch (err) {
-    if (err instanceof DraftError) throw err
-    if (err instanceof Error && err.name === 'AbortError') {
-      throw new DraftError('The drafting request took too long and was stopped.')
-    }
-    console.error('[report-comments] drafting failed:', err)
-    throw new DraftError('Could not reach the drafting provider.')
-  } finally {
-    clearTimeout(timer)
-  }
-}
-
 /**
  * Put the student's name back. The model was told to say "the student", so this
  * is a local substitution on text that never carried the name in transit.
@@ -142,7 +79,7 @@ export function makeLlmDrafter(rosterNames: string[]): CommentDrafter {
           `${ev.notAssessed.length} of the course's standards have no recorded judgement, so the comment cannot speak to them.`,
         )
       }
-      const raw = await callAnthropic(packet)
+      const raw = await askModel(SYSTEM, packet, { maxTokens: 400, label: 'report-comments' })
       return {
         body: restoreName(raw, ev.student.firstName),
         citedStandardIds: [...ev.strengths, ...ev.growing]

@@ -1368,3 +1368,24 @@ html {
     animation: none;
   }
 }
+
+/* Formative feedback on a draft.
+   Notes are dense and read as a list of moves, so the marker is a rule rather
+   than a bullet — it keeps a five-item list from reading like a checklist the
+   student is expected to tick off. */
+.lms .lms-coach__list {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.lms .lms-coach__list li {
+  font-size: 13.5px;
+  line-height: 1.6;
+  padding-left: 12px;
+  border-left: 2px solid var(--lms-line-strong);
+}
+.lms .lms-coach__list li:hover {
+  border-left-color: var(--lms-accent);
+}

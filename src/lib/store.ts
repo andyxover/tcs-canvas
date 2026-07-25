@@ -15,6 +15,7 @@ import type {
   CourseModule,
   DiscussionPost,
   DiscussionTopic,
+  DraftCoachRequest,
   GradeSettings,
   LmsData,
   ModuleItem,
@@ -297,6 +298,7 @@ export interface AssignmentInput {
   published: boolean
   rubricId: string | null
   standardIds?: string[]
+  draftCoach?: boolean
 }
 
 export async function createAssignment(input: AssignmentInput): Promise<Assignment> {
@@ -314,6 +316,7 @@ export async function createAssignment(input: AssignmentInput): Promise<Assignme
     submissionType: 'online',
     rubricId: input.rubricId,
     standardIds: input.standardIds ?? [],
+    draftCoach: input.draftCoach ?? true,
     position: siblings.length,
   }
   d.assignments.push(assignment)
@@ -352,6 +355,7 @@ export async function createQuizAssignment(input: QuizInput): Promise<Assignment
     submissionType: 'quiz',
     rubricId: null,
     standardIds: input.standardIds ?? [],
+    draftCoach: false,
     position: siblings.length,
   }
   d.assignments.push(assignment)
@@ -538,6 +542,26 @@ export async function saveReportComment(input: {
   } else {
     d.reportComments.push({ ...input, updatedAt })
   }
+}
+
+// ---------------------------------------------------------------------------
+// Draft-feedback request log
+// ---------------------------------------------------------------------------
+
+/** Record that a student asked for feedback. Content is never stored. */
+export async function logCoachRequest(input: {
+  assignmentId: string
+  studentId: string
+  coachId: string
+  words: number
+}): Promise<void> {
+  const d = await data()
+  d.coachRequests.push({ ...input, at: new Date().toISOString() })
+}
+
+export async function listCoachRequests(assignmentId: string): Promise<DraftCoachRequest[]> {
+  const d = await data()
+  return d.coachRequests.filter((r) => r.assignmentId === assignmentId)
 }
 
 export async function clearReportComment(courseId: string, studentId: string): Promise<void> {
