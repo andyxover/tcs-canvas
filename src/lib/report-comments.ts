@@ -9,7 +9,6 @@ import {
 import { isLate, isMissing } from './grade-calc'
 import {
   courseGradeForStudent,
-  getAssignment,
   getCourse,
   getPerson,
   getSubmission,

@@ -1086,6 +1086,34 @@ html {
 .lms .lms-evidence-panel[open] > summary::before { transform: rotate(90deg); }
 .lms .lms-evidence-panel > summary:hover { color: var(--lms-ink); }
 
+/* ---- Language-model comparison ----------------------------------------- */
+.lms .lms-ai {
+  border-top: 1px dashed var(--lms-line-strong);
+  padding-top: 12px;
+}
+.lms .lms-ai__draft {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--lms-accent);
+  border-radius: var(--lms-radius-sm);
+  background: var(--lms-info-bg);
+}
+/* The payload is deliberately shown raw. Prettifying it would undercut the point,
+   which is that a teacher can read exactly what leaves the building. */
+.lms .lms-payload {
+  margin: 0;
+  padding: 12px;
+  max-height: 320px;
+  overflow: auto;
+  border-radius: var(--lms-radius-sm);
+  background: var(--lms-bg);
+  border: 1px solid var(--lms-line);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  line-height: 1.5;
+  white-space: pre;
+}
+
 /* ---- BC learning standards ------------------------------------------- */
 .lms .lms-prof {
   display: inline-flex;

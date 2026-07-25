@@ -8,6 +8,7 @@ import {
   type EvidenceItem,
 } from '@/lib/report-comments'
 import { PROFICIENCY_META } from '@/lib/bc-curriculum'
+import { llmConfigured, llmModel } from '@/lib/comment-drafters/llm'
 import { ProficiencyChip } from '../../../../_components/Standards'
 import { courseCtx } from '../_shared'
 import { Avatar, Badge, EmptyState } from '../../../../_components/ui'
@@ -22,6 +23,7 @@ export default async function ReportsPage({ params }: { params: Promise<{ course
 
   const roster = await listRoster(course.id)
   const drafter = activeDrafter()
+  const aiConfigured = llmConfigured()
 
   const rows = await Promise.all(
     roster.map(async (student) => {
@@ -60,9 +62,12 @@ export default async function ReportsPage({ params }: { params: Promise<{ course
         <div>
           <div style={{ fontWeight: 600, fontSize: 13.5 }}>Drafted by: {drafter.label}</div>
           <div className="lms-muted" style={{ fontSize: 12.5, marginTop: 2 }}>
-            {drafter.id === 'structured'
-              ? 'Runs entirely in the app — no student work leaves the building. Swapping in a language model is a deliberate, separate decision.'
-              : 'A language model is drafting these. Student evidence is being sent to that provider.'}
+            Runs entirely in the app — no student work leaves the building. Every draft below is written this way.
+          </div>
+          <div className="lms-muted" style={{ fontSize: 12.5, marginTop: 6 }}>
+            {aiConfigured
+              ? `A language model (${llmModel()}) is also configured. It never runs on its own — you ask for it per student, and only de-identified evidence is sent.`
+              : 'No language model is configured. You can still inspect exactly what would be sent to one, without sending anything.'}
           </div>
         </div>
       </div>
@@ -108,6 +113,7 @@ export default async function ReportsPage({ params }: { params: Promise<{ course
               drafterId={draft.drafterId}
               saved={saved?.body ?? null}
               savedAt={saved?.updatedAt ?? null}
+              aiConfigured={aiConfigured}
             />
 
             <Evidence courseId={course.id} evidence={evidence} />

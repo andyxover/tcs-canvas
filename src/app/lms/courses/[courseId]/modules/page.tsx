@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { listAssignments, listModules } from '@/lib/store'
 import type { CourseModule, ModuleItem } from '@/lib/types'
 import { courseCtx } from '../_shared'

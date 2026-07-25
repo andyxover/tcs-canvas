@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { getViewer } from '@/lib/session'
 import { search } from '@/lib/store'
 import { Badge, EmptyState } from '../../_components/ui'
