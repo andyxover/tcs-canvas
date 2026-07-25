@@ -26,7 +26,7 @@ export function TopBar({ viewer, teachers, students }: Props) {
   function onSearch(e: React.FormEvent) {
     e.preventDefault()
     const q = query.trim()
-    if (q) router.push(`/search?q=${encodeURIComponent(q)}`)
+    if (q) router.push(`/lms/search?q=${encodeURIComponent(q)}`)
   }
 
   useEffect(() => {
@@ -51,14 +51,14 @@ export function TopBar({ viewer, teachers, students }: Props) {
     startSwitching(async () => {
       setPendingViewer({ kind, person: next })
       await setIdentity(kind, id)
-      router.push('/')
+      router.push('/lms')
       router.refresh()
     })
   }
 
   return (
     <header className="lms-topbar">
-      <Link href="/" className="lms-topbar__brand">
+      <Link href="/lms" className="lms-topbar__brand">
         <span className="lms-topbar__mark" aria-hidden>
           ◧
         </span>
@@ -66,14 +66,14 @@ export function TopBar({ viewer, teachers, students }: Props) {
       </Link>
       <span className="lms-topbar__lab">Sandbox</span>
       <nav className="lms-topbar__nav">
-        <HoverLink href="/" className="lms-topbar__link" data-active={pathname === '/'}>
+        <HoverLink href="/lms" className="lms-topbar__link" data-active={pathname === '/lms'}>
           Courses
         </HoverLink>
-        <HoverLink href="/agenda" className="lms-topbar__link" data-active={pathname === '/agenda'}>
+        <HoverLink href="/lms/agenda" className="lms-topbar__link" data-active={pathname === '/lms/agenda'}>
           Agenda
         </HoverLink>
         {shownViewer.kind === 'teacher' && (
-          <HoverLink href="/standards" className="lms-topbar__link" data-active={pathname === '/standards'}>
+          <HoverLink href="/lms/standards" className="lms-topbar__link" data-active={pathname === '/lms/standards'}>
             Standards
           </HoverLink>
         )}
