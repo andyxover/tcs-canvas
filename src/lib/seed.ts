@@ -427,5 +427,6 @@ export function buildSeed(): LmsData {
     // generated from real evidence rather than from a fixture.
     reportComments: [],
     coachRequests: [],
+    practiceFlags: [],
   }
 }

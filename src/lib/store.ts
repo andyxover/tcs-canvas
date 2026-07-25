@@ -16,6 +16,7 @@ import type {
   DiscussionPost,
   DiscussionTopic,
   DraftCoachRequest,
+  PracticeFlag,
   GradeSettings,
   LmsData,
   ModuleItem,
@@ -562,6 +563,33 @@ export async function logCoachRequest(input: {
 export async function listCoachRequests(assignmentId: string): Promise<DraftCoachRequest[]> {
   const d = await data()
   return d.coachRequests.filter((r) => r.assignmentId === assignmentId)
+}
+
+// ---------------------------------------------------------------------------
+// Practice flags
+// ---------------------------------------------------------------------------
+
+export async function flagPracticeQuestion(input: {
+  courseId: string
+  studentId: string
+  standardCode: string
+  prompt: string
+  given: string
+  note: string
+}): Promise<void> {
+  const d = await data()
+  d.practiceFlags.push({ ...input, id: newId('pf'), at: new Date().toISOString(), resolved: false })
+}
+
+export async function listPracticeFlags(courseId: string): Promise<PracticeFlag[]> {
+  const d = await data()
+  return d.practiceFlags.filter((f) => f.courseId === courseId).slice().reverse()
+}
+
+export async function resolvePracticeFlag(id: string): Promise<void> {
+  const d = await data()
+  const f = d.practiceFlags.find((x) => x.id === id)
+  if (f) f.resolved = true
 }
 
 export async function clearReportComment(courseId: string, studentId: string): Promise<void> {

@@ -1,4 +1,4 @@
-import { courseStandardIds, listRoster, studentMastery } from '@/lib/store'
+import { courseStandardIds, listPracticeFlags, listRoster, studentMastery } from '@/lib/store'
 import {
   KIND_META,
   PROFICIENCY_LEVELS,
@@ -11,7 +11,9 @@ import type { Course } from '@/lib/types'
 import { courseCtx } from '../_shared'
 import { Badge, EmptyState } from '../../../../_components/ui'
 import { ProficiencyChip } from '../../../../_components/Standards'
-import { HoverLink } from '../../../../_components/interactive'
+import { HoverLink, SubmitButton } from '../../../../_components/interactive'
+import { getPerson } from '@/lib/store'
+import { resolveFlagAction } from '../practice/actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,6 +37,8 @@ export default async function StandardsPage({ params }: { params: Promise<{ cour
         </div>
         <Legend />
       </div>
+
+      {isTeacher && <FlagQueue courseId={course.id} />}
 
       {standardIds.length === 0 ? (
         <EmptyState
@@ -247,5 +251,56 @@ async function StudentStandards({ courseId, studentId, standardIds }: { courseId
         </section>
       ))}
     </div>
+  )
+}
+
+/**
+ * Practice questions a student reported as wrong.
+ *
+ * This sits beside the mastery grid rather than on its own page because it is
+ * only ever a handful of items and it is the one thing about generated practice
+ * a teacher must not miss: a wrong answer key that nobody adjudicates gets
+ * quietly learned by the whole class.
+ */
+async function FlagQueue({ courseId }: { courseId: string }) {
+  const open = (await listPracticeFlags(courseId)).filter((f) => !f.resolved)
+  if (open.length === 0) return null
+  // Resolve names up front: mapping to async components would hand React an
+  // array of promises rather than elements.
+  const flags = await Promise.all(
+    open.map(async (f) => ({ ...f, who: (await getPerson(f.studentId))?.name ?? 'a student' })),
+  )
+
+  return (
+    <section className="lms-card lms-card--pad lms-stack" style={{ gap: 10 }}>
+      <div>
+        <strong style={{ fontSize: 14 }}>
+          {flags.length} practice question{flags.length === 1 ? '' : 's'} reported as wrong
+        </strong>
+        <div className="lms-muted" style={{ fontSize: 12.5 }}>
+          Generated practice, not written by you. Worth a look — if the answer really is wrong, the class is practising
+          against it.
+        </div>
+      </div>
+      {flags.map((f) => (
+        <div key={f.id} className="lms-callout lms-callout--warn lms-stack" style={{ gap: 6 }}>
+          <div className="lms-between lms-wrap" style={{ gap: 8 }}>
+            <span style={{ fontSize: 13 }}>
+              <code className="lms-stdpick__code">{f.standardCode}</code> reported by {f.who}
+            </span>
+            <form action={resolveFlagAction.bind(null, courseId, f.id)}>
+              <SubmitButton className="lms-btn lms-btn--sm">Mark as looked at</SubmitButton>
+            </form>
+          </div>
+          <div style={{ fontSize: 13.5, fontWeight: 600 }}>{f.prompt}</div>
+          <div style={{ fontSize: 13, whiteSpace: 'pre-wrap' }}>{f.given}</div>
+          {f.note && (
+            <div className="lms-muted" style={{ fontSize: 13 }}>
+              They said: {f.note}
+            </div>
+          )}
+        </div>
+      ))}
+    </section>
   )
 }

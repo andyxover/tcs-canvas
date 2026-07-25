@@ -1389,3 +1389,37 @@ html {
 .lms .lms-coach__list li:hover {
   border-left-color: var(--lms-accent);
 }
+
+/* Practice options.
+   Neutral until a choice is committed — colouring an option before the student
+   picks would hand them the answer, which defeats the exercise. */
+.lms .lms-practice__opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--lms-ink);
+  background: var(--lms-bg);
+  border: 1px solid var(--lms-line);
+  border-radius: var(--lms-radius-sm);
+  cursor: pointer;
+  transition: border-color var(--lms-dur, 150ms) ease, transform var(--lms-dur, 150ms) ease;
+}
+.lms .lms-practice__opt:hover:not(:disabled) {
+  border-color: var(--lms-accent);
+  transform: translateX(2px);
+}
+.lms .lms-practice__opt:disabled {
+  cursor: default;
+}
+.lms .lms-practice__opt--right {
+  border-color: var(--lms-ok);
+  background: var(--lms-ok-bg);
+  font-weight: 600;
+}
+.lms .lms-practice__opt--wrong {
+  border-color: var(--lms-danger);
+  background: var(--lms-danger-bg);
+}

@@ -11,24 +11,30 @@ type Props = {
   isTeacher: boolean
 }
 
+// `audience` rather than a pair of booleans: the two are mutually exclusive, and
+// a nav item that is somehow both teacherOnly and studentOnly should not be
+// expressible.
 const ITEMS = [
-  { seg: '', label: 'Home', icon: '⌂', teacherOnly: false },
-  { seg: 'announcements', label: 'Announcements', icon: '📣', teacherOnly: false },
-  { seg: 'modules', label: 'Modules', icon: '▤', teacherOnly: false },
-  { seg: 'assignments', label: 'Assignments', icon: '✎', teacherOnly: false },
-  { seg: 'grades', label: 'Grades', icon: '◈', teacherOnly: false },
-  { seg: 'standards', label: 'Standards', icon: '◆', teacherOnly: false },
-  { seg: 'discussions', label: 'Discussions', icon: '💬', teacherOnly: false },
-  { seg: 'people', label: 'People', icon: '☺', teacherOnly: false },
-  { seg: 'syllabus', label: 'Syllabus', icon: '❋', teacherOnly: false },
-  { seg: 'reports', label: 'Reports', icon: '✍', teacherOnly: true },
-  { seg: 'settings', label: 'Settings', icon: '⚙', teacherOnly: true },
+  { seg: '', label: 'Home', icon: '⌂', audience: 'all' },
+  { seg: 'announcements', label: 'Announcements', icon: '📣', audience: 'all' },
+  { seg: 'modules', label: 'Modules', icon: '▤', audience: 'all' },
+  { seg: 'assignments', label: 'Assignments', icon: '✎', audience: 'all' },
+  { seg: 'grades', label: 'Grades', icon: '◈', audience: 'all' },
+  { seg: 'standards', label: 'Standards', icon: '◆', audience: 'all' },
+  { seg: 'practice', label: 'Practice', icon: '◎', audience: 'student' },
+  { seg: 'discussions', label: 'Discussions', icon: '💬', audience: 'all' },
+  { seg: 'people', label: 'People', icon: '☺', audience: 'all' },
+  { seg: 'syllabus', label: 'Syllabus', icon: '❋', audience: 'all' },
+  { seg: 'reports', label: 'Reports', icon: '✍', audience: 'teacher' },
+  { seg: 'settings', label: 'Settings', icon: '⚙', audience: 'teacher' },
 ] as const
 
 export function CourseNav({ courseId, courseName, courseCode, term, isTeacher }: Props) {
   const pathname = usePathname()
   const base = `/lms/courses/${courseId}`
-  const items = ITEMS.filter((item) => !item.teacherOnly || isTeacher)
+  const items = ITEMS.filter(
+    (item) => item.audience === 'all' || (item.audience === 'teacher') === isTeacher,
+  )
 
   function isActive(seg: string): boolean {
     const href = seg ? `${base}/${seg}` : base

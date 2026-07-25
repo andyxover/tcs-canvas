@@ -255,6 +255,28 @@ export interface DraftCoachRequest {
   words: number
 }
 
+/**
+ * A student saying "this practice question looks wrong".
+ *
+ * The mitigation for the one failure mode generated practice really has: a
+ * confidently wrong answer key, which a student working alone cannot detect.
+ * Rather than pretend that never happens, it is routed to the person who can
+ * actually adjudicate it. The question is stored verbatim so the teacher can
+ * judge without having to reproduce it.
+ */
+export interface PracticeFlag {
+  id: string
+  courseId: string
+  studentId: string
+  standardCode: string
+  prompt: string
+  /** The answer key as shown to the student. */
+  given: string
+  note: string
+  at: string
+  resolved: boolean
+}
+
 export interface LmsData {
   teachers: Person[]
   students: Person[]
@@ -271,4 +293,5 @@ export interface LmsData {
   discussionPosts: DiscussionPost[]
   reportComments: ReportComment[]
   coachRequests: DraftCoachRequest[]
+  practiceFlags: PracticeFlag[]
 }
