@@ -212,6 +212,24 @@ export interface DiscussionTopic {
 }
 
 /** The whole sandbox world, held in one mutable object (see store.ts). */
+/**
+ * A term report-card comment for one student in one course.
+ *
+ * The teacher's edited text is what counts — `draft` is kept alongside it only so
+ * the UI can show what was proposed versus what was signed, which is the
+ * distinction that keeps the drafting assistive rather than authoritative.
+ */
+export interface ReportComment {
+  courseId: string
+  studentId: string
+  /** What the teacher actually wrote and stands behind. */
+  body: string
+  /** The untouched draft it started from. */
+  draft: string
+  drafterId: string
+  updatedAt: string
+}
+
 export interface LmsData {
   teachers: Person[]
   students: Person[]
@@ -226,4 +244,5 @@ export interface LmsData {
   announcements: Announcement[]
   discussionTopics: DiscussionTopic[]
   discussionPosts: DiscussionPost[]
+  reportComments: ReportComment[]
 }

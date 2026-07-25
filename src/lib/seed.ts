@@ -418,5 +418,8 @@ export function buildSeed(): LmsData {
     announcements,
     discussionTopics,
     discussionPosts,
+    // Teachers write these; nothing is seeded so the first draft is always
+    // generated from real evidence rather than from a fixture.
+    reportComments: [],
   }
 }

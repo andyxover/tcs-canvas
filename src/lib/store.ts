@@ -22,6 +22,7 @@ import type {
   Person,
   Quiz,
   QuizQuestion,
+  ReportComment,
   Rubric,
   RubricScore,
   StandardAssessment,
@@ -500,6 +501,50 @@ export async function courseStandardIds(courseId: string): Promise<string[]> {
     for (const id of a.standardIds ?? []) seen.add(id)
   }
   return (await listStandards()).filter((s) => seen.has(s.id)).map((s) => s.id)
+}
+
+// ---------------------------------------------------------------------------
+// Report-card comments
+// ---------------------------------------------------------------------------
+
+export async function getReportComment(courseId: string, studentId: string): Promise<ReportComment | undefined> {
+  const d = await data()
+  return d.reportComments.find((c) => c.courseId === courseId && c.studentId === studentId)
+}
+
+export async function listReportComments(courseId: string): Promise<ReportComment[]> {
+  const d = await data()
+  return d.reportComments.filter((c) => c.courseId === courseId)
+}
+
+/** Save the teacher's text. The draft it started from is kept for comparison. */
+export async function saveReportComment(input: {
+  courseId: string
+  studentId: string
+  body: string
+  draft: string
+  drafterId: string
+}): Promise<void> {
+  const d = await data()
+  const existing = d.reportComments.find(
+    (c) => c.courseId === input.courseId && c.studentId === input.studentId,
+  )
+  const updatedAt = new Date().toISOString()
+  if (existing) {
+    existing.body = input.body
+    existing.draft = input.draft
+    existing.drafterId = input.drafterId
+    existing.updatedAt = updatedAt
+  } else {
+    d.reportComments.push({ ...input, updatedAt })
+  }
+}
+
+export async function clearReportComment(courseId: string, studentId: string): Promise<void> {
+  const d = await data()
+  d.reportComments = d.reportComments.filter(
+    (c) => !(c.courseId === courseId && c.studentId === studentId),
+  )
 }
 
 export interface StandardMastery {
