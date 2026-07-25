@@ -82,6 +82,15 @@ export interface Assignment {
    * off. A single school-wide setting would be the wrong granularity.
    */
   draftCoach: boolean
+  /**
+   * Whether how the student wrote this is recorded for the teacher to see.
+   *
+   * Per-assignment and off by default in the seed for anything low-stakes: a
+   * homework worksheet does not warrant recording how someone worked, and
+   * switching it on everywhere by reflex is how a reasonable tool becomes
+   * surveillance.
+   */
+  processCapture: boolean
   /** Display ordering within the Assignments list. */
   position: number
 }
@@ -277,6 +286,36 @@ export interface PracticeFlag {
   resolved: boolean
 }
 
+/**
+ * One recorded change to a draft.
+ *
+ * EVENTS, NOT CONTENT — this is the central design decision. A full keystroke
+ * log or periodic snapshots would let you replay the text itself, including
+ * every sentence the student typed and deleted. That captures a person's
+ * unfinished thinking, which is none of the school's business, and it answers no
+ * question a teacher actually has. What a teacher wants to know is whether the
+ * work was composed or arrived in blocks, and length-over-time plus paste sizes
+ * answers exactly that while storing none of the writing.
+ */
+export interface WritingEvent {
+  /** Milliseconds since the first event recorded for this submission. */
+  t: number
+  kind: 'type' | 'paste' | 'delete'
+  /** Document length after the event. */
+  len: number
+  /** Characters added, or removed for a delete. Always positive. */
+  delta: number
+}
+
+export interface WritingHistory {
+  assignmentId: string
+  studentId: string
+  startedAt: string
+  /** Wall-clock milliseconds the editor was actually focused. */
+  activeMs: number
+  events: WritingEvent[]
+}
+
 export interface LmsData {
   teachers: Person[]
   students: Person[]
@@ -294,4 +333,5 @@ export interface LmsData {
   reportComments: ReportComment[]
   coachRequests: DraftCoachRequest[]
   practiceFlags: PracticeFlag[]
+  writingHistories: WritingHistory[]
 }

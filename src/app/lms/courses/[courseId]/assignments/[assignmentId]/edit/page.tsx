@@ -126,6 +126,17 @@ export default async function EditAssignmentPage({
           </p>
         </div>
 
+        <div className="lms-field">
+          <label className="lms-flex" style={{ cursor: 'pointer' }}>
+            <input type="checkbox" name="processCapture" defaultChecked={a.processCapture} />
+            <span>Record how students write this</span>
+          </label>
+          <p className="lms-muted" style={{ fontSize: 12.5, margin: '4px 0 0' }}>
+            Stores time spent, how the length changes, and paste sizes — never the writing itself. Students are told
+            before they start. Worth it on substantial work; on a short worksheet it is just surveillance.
+          </p>
+        </div>
+
         <div className="lms-flex" style={{ marginTop: 8 }}>
           <SubmitButton className="lms-btn lms-btn--primary">
             Save changes

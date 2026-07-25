@@ -1,13 +1,15 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getViewer } from '@/lib/session'
-import { getAssignment, getCourse, getRubric, getSubmission, listRoster } from '@/lib/store'
+import { getAssignment, getCourse, getRubric, getSubmission, getWritingHistory, listRoster } from '@/lib/store'
+import { summarize } from '@/lib/provenance'
 import { isLate } from '@/lib/grade-calc'
 import { PROFICIENCY_LEVELS, PROFICIENCY_META, getStandard } from '@/lib/bc-curriculum'
 import type { Rubric, Submission } from '@/lib/types'
 import { gradeAction } from '../../actions'
 import { Avatar, Badge, fmtRelative } from '../../../../../../_components/ui'
 import { SubmitButton } from '../../../../../../_components/interactive'
+import { WritingProcess } from './WritingProcess'
 
 export const dynamic = 'force-dynamic'
 
@@ -75,6 +77,18 @@ export default async function SubmissionsPage({
                     </div>
                   )}
                 </div>
+              )}
+
+              {/* Collapsed by default: how the work was written is context for a
+                  question, not the first thing to greet a teacher opening a pile
+                  of submissions to grade. */}
+              {assignment.processCapture && sub.state !== 'unsubmitted' && (
+                <details className="lms-evidence-panel" style={{ marginBottom: 12 }}>
+                  <summary>How this was written</summary>
+                  <div style={{ marginTop: 10 }}>
+                    <WritingProcess summary={summarize(await getWritingHistory(assignment.id, student.id))} />
+                  </div>
+                </details>
               )}
 
               <form action={action} className="lms-stack">

@@ -20,6 +20,7 @@ import { Badge, RichText, fmtDay, fmtRelative } from '../../../../../_components
 import { SubmitButton } from '../../../../../_components/interactive'
 import { llmConfigured } from '@/lib/ai/anthropic'
 import { DraftCoach } from './DraftCoach'
+import { ProvenanceBox } from './ProvenanceBox'
 
 export const dynamic = 'force-dynamic'
 
@@ -259,7 +260,24 @@ async function StudentSubmitPanel({ courseId, assignmentId, studentId }: { cours
             <label className="lms-label" htmlFor="text">
               Response
             </label>
-            <textarea id="text" name="text" className="lms-textarea" defaultValue={sub.text} placeholder="Type your response…" />
+            {/* The notice sits ABOVE the box, not in a policy page or a tooltip.
+                A student has to know before they type, not after. */}
+            {assignment.processCapture && (
+              <div className="lms-callout" style={{ marginBottom: 8 }}>
+                <strong style={{ fontSize: 13 }}>Your teacher can see how this was written.</strong>
+                <div style={{ fontSize: 12.5, marginTop: 4, lineHeight: 1.55 }}>
+                  This task records how long you spend in the box, how the length changes over time, and the size of
+                  anything you paste in. <strong>What you write is not recorded</strong> — only the shape of the work.
+                  Pasting is not against the rules; plenty of people draft somewhere else first.
+                </div>
+              </div>
+            )}
+            <ProvenanceBox
+              assignmentId={assignmentId}
+              studentId={studentId}
+              defaultValue={sub.text}
+              enabled={assignment.processCapture}
+            />
           </div>
           <div className="lms-field">
             <label className="lms-label" htmlFor="fileName">

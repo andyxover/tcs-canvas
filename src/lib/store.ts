@@ -17,6 +17,8 @@ import type {
   DiscussionTopic,
   DraftCoachRequest,
   PracticeFlag,
+  WritingEvent,
+  WritingHistory,
   GradeSettings,
   LmsData,
   ModuleItem,
@@ -300,6 +302,7 @@ export interface AssignmentInput {
   rubricId: string | null
   standardIds?: string[]
   draftCoach?: boolean
+  processCapture?: boolean
 }
 
 export async function createAssignment(input: AssignmentInput): Promise<Assignment> {
@@ -318,6 +321,7 @@ export async function createAssignment(input: AssignmentInput): Promise<Assignme
     rubricId: input.rubricId,
     standardIds: input.standardIds ?? [],
     draftCoach: input.draftCoach ?? true,
+    processCapture: input.processCapture ?? false,
     position: siblings.length,
   }
   d.assignments.push(assignment)
@@ -357,6 +361,7 @@ export async function createQuizAssignment(input: QuizInput): Promise<Assignment
     rubricId: null,
     standardIds: input.standardIds ?? [],
     draftCoach: false,
+    processCapture: false,
     position: siblings.length,
   }
   d.assignments.push(assignment)
@@ -563,6 +568,70 @@ export async function logCoachRequest(input: {
 export async function listCoachRequests(assignmentId: string): Promise<DraftCoachRequest[]> {
   const d = await data()
   return d.coachRequests.filter((r) => r.assignmentId === assignmentId)
+}
+
+// ---------------------------------------------------------------------------
+// Writing provenance
+// ---------------------------------------------------------------------------
+
+/**
+ * Hard ceiling on stored events per submission.
+ *
+ * The client already coalesces typing into buckets, but a determined session
+ * still accumulates. Past the cap the oldest TYPE events are thinned by
+ * dropping every second one — pastes and deletes are never dropped, because
+ * those are the events carrying the signal a teacher is looking at. Thinning
+ * preserves the shape of the curve while halving its resolution, which is a
+ * far better failure mode than refusing to record anything more.
+ */
+const MAX_EVENTS = 600
+
+function thin(events: WritingEvent[]): WritingEvent[] {
+  if (events.length <= MAX_EVENTS) return events
+  const keep: WritingEvent[] = []
+  let seenType = 0
+  for (const e of events) {
+    if (e.kind === 'type') {
+      seenType += 1
+      if (seenType % 2 === 0) continue
+    }
+    keep.push(e)
+  }
+  // Still over after one pass (nearly all pastes, which we refuse to drop):
+  // accept it rather than lose the events that matter.
+  return keep
+}
+
+export async function appendWritingEvents(input: {
+  assignmentId: string
+  studentId: string
+  events: WritingEvent[]
+  activeMs: number
+}): Promise<void> {
+  const d = await data()
+  let h = d.writingHistories.find(
+    (x) => x.assignmentId === input.assignmentId && x.studentId === input.studentId,
+  )
+  if (!h) {
+    h = {
+      assignmentId: input.assignmentId,
+      studentId: input.studentId,
+      startedAt: new Date().toISOString(),
+      activeMs: 0,
+      events: [],
+    }
+    d.writingHistories.push(h)
+  }
+  h.events = thin([...h.events, ...input.events])
+  h.activeMs += input.activeMs
+}
+
+export async function getWritingHistory(
+  assignmentId: string,
+  studentId: string,
+): Promise<WritingHistory | undefined> {
+  const d = await data()
+  return d.writingHistories.find((x) => x.assignmentId === assignmentId && x.studentId === studentId)
 }
 
 // ---------------------------------------------------------------------------

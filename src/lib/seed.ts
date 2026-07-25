@@ -232,6 +232,9 @@ function buildAssignments(): Assignment[] {
       // On for written work so the sandbox demonstrates it. A real deployment
       // should default this off and let teachers opt each task in.
       draftCoach: true,
+      // Only on the two labs — work substantial enough that how it was written
+      // is a fair question. Recording a ten-mark worksheet would not be.
+      processCapture: s.id === 'a-sci-lab1' || s.id === 'a-sci-lab2',
       position: i,
     }))
   const sci9 = make('c-sci9', sci9Assignments)
@@ -251,6 +254,7 @@ function buildAssignments(): Assignment[] {
     standardIds: q.standardIds ?? [],
     // A quiz has no draft to coach — it is answered and auto-graded on submit.
     draftCoach: false,
+    processCapture: false,
     position: sci9.length + i,
   }))
   return [...sci9, ...sci9Q, ...math9, ...chem11]
@@ -428,5 +432,6 @@ export function buildSeed(): LmsData {
     reportComments: [],
     coachRequests: [],
     practiceFlags: [],
+    writingHistories: [],
   }
 }
